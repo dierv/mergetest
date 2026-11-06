@@ -901,8 +901,7 @@ h1 {
   }
 
   /* ---------- Classifica online (Firebase Realtime Database via REST) ---------- */
-  let ONLINE = '', online = [], onlineOk = false, onlineTried = false, pushT = null, resolving = null;
-  const lastPushed = {};
+  let ONLINE = '', online = [], onlineOk = false, onlineTried = false, pushT = null, resolving = null, syncing = false;
   function resolveOnline() {
     if (ONLINE || !FIREBASE_URLS.length) return Promise.resolve(ONLINE);
     if (!resolving) {
@@ -957,31 +956,51 @@ h1 {
     onlineTried = true;
     renderRanks();
   }
+  /* Invia il record di un giocatore se è cambiato dall'ultimo invio riuscito (salvato in p.synced). */
+  async function pushPlayer(p) {
+    if (!p || p.best <= 0 || p.nameTaken) return false;
+    const body = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0 });
+    if (p.synced === body) return false;
+    if (!p.claimed) {
+      const res = await claimName(nameKey(p.name), p.id);
+      if (res === 'taken') {
+        p.nameTaken = true; savePlayers();
+        if (p.id === P.current) toast(`«${p.name}» è già usato online: crea un giocatore con un altro nome`);
+        return false;
+      }
+      if (res !== 'ok') return false;
+      p.claimed = true; savePlayers();
+    }
+    try {
+      const r = await fetch(ONLINE + '/scores/' + encodeURIComponent(p.id) + '.json', { method: 'PUT', body });
+      if (r.ok) { p.synced = body; savePlayers(); return true; }
+    } catch (e) {}
+    return false;
+  }
+  /* Sincronizza tutti i giocatori di questo dispositivo: recupera anche le partite fatte offline. */
+  async function syncAll() {
+    if (!FIREBASE_URLS.length || syncing) return;
+    syncing = true;
+    try {
+      if (await resolveOnline()) {
+        let sent = false;
+        for (const p of P.list) sent = (await pushPlayer(p)) || sent;
+        if (sent) await pullOnline();
+      }
+    } finally { syncing = false; }
+  }
   function pushOnline(now) {
     if (!FIREBASE_URLS.length) return;
     clearTimeout(pushT);
-    pushT = setTimeout(async () => {
-      const p = me(); if (!p || p.best <= 0 || p.nameTaken) return;
-      if (!await resolveOnline()) return;
-      if (!p.claimed) {
-        const res = await claimName(nameKey(p.name), p.id);
-        if (res === 'taken') { p.nameTaken = true; savePlayers(); toast(`«${p.name}» è già usato online: crea un giocatore con un altro nome`); return; }
-        if (res !== 'ok') return;
-        p.claimed = true; savePlayers();
-      }
-      const body = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0 });
-      if (lastPushed[p.id] === body) return;
-      try {
-        const r = await fetch(ONLINE + '/scores/' + encodeURIComponent(p.id) + '.json', { method: 'PUT', body });
-        if (r.ok) { lastPushed[p.id] = body; pullOnline(); }
-      } catch (e) {}
-    }, now ? 0 : 2500);
+    pushT = setTimeout(syncAll, now ? 0 : 2500);
   }
   if (FIREBASE_URLS.length) {
-    setInterval(() => { if (document.visibilityState === 'visible') pullOnline(); }, 20000);
+    setInterval(() => { if (document.visibilityState === 'visible') { pullOnline(); pushOnline(true); } }, 20000);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') pullOnline(); else pushOnline(true);
+      if (document.visibilityState === 'visible') pullOnline();
+      pushOnline(true);
     });
+    window.addEventListener('online', () => { pullOnline(); pushOnline(true); });
   }
   function renderWho() {
     const p = me();
@@ -1122,7 +1141,7 @@ h1 {
     drawStars();
     renderAll('drop');
     if (!me()) openSetup();
-    pullOnline();
+    pullOnline().then(() => pushOnline(true));
   }
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, prev, P }));
   if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
