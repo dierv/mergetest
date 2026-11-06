@@ -407,6 +407,7 @@ body.tips .tip { opacity: 1; transform: none; }
 .rank .pb { font: 16px/1 var(--emoji); }
 .rank-empty { font-size: .9rem; color: var(--ink-soft); padding: 4px 6px; }
 .rules { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: .93rem; line-height: 1.45; max-width: 65ch; }
+.rules .powers { list-style: none; padding: 0; margin: 6px 0 2px; display: grid; gap: 5px; }
 .rules b { font-weight: 700; }
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--cell); border: 1px solid var(--panel-line); font-weight: 700; }
 .switch {
@@ -621,9 +622,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   </section>
 
   <section class="bonus-bar panel" aria-label="Bonus">
+    <button id="bonus-dice" class="bonus" type="button"><span class="b-em">🎲</span><span class="b-n">0</span><span class="tip">Dado: cambia il prossimo pezzo</span></button>
     <button id="bonus-hammer" class="bonus" type="button"><span class="b-em">🔨</span><span class="b-n">0</span><span class="tip">Martello: togli un pezzo dal tabellone</span></button>
     <button id="bonus-rainbow" class="bonus" type="button"><span class="b-em">🌈</span><span class="b-n">0</span><span class="tip">Arcobaleno: un jolly che diventa il pezzo della fusione migliore</span></button>
-    <button id="bonus-dice" class="bonus" type="button"><span class="b-em">🎲</span><span class="b-n">0</span><span class="tip">Dado: cambia il prossimo pezzo</span></button>
     <button id="bonus-magnet" class="bonus" type="button"><span class="b-em">🧲</span><span class="b-n">0</span><span class="tip">Calamita: unisce i pezzi uguali di tutto il tabellone (almeno 3)</span></button>
     <button id="tipsBtn" class="info-btn" type="button" aria-pressed="false" aria-label="A cosa servono i bonus">i</button>
   </section>
@@ -755,9 +756,16 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
       <li><b>Più pezzi, più premi</b>: con 3 pezzi ne nasce 1 superiore, con 5 ne nascono 2, con 7 ne nascono 3, e così via.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
-      <li><b>Calamita</b> 🧲: unisce tutti i pezzi uguali del tabellone anche se sono lontani, con la stessa regola (almeno 3 uguali). Libera spazio, dà punti e monete.</li>
+      <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai forzieri. Tocca la (i) per rivederli al volo.
+        <ul class="powers">
+          <li>🎲 <b>Dado</b>: cambia il prossimo pezzo con un altro.</li>
+          <li>🔨 <b>Martello</b>: tocca il martello, poi un pezzo del tabellone per toglierlo.</li>
+          <li>🌈 <b>Arcobaleno</b>: tocca l'arcobaleno, poi una casella vuota. Diventa il pezzo che fa la fusione migliore con i vicini.</li>
+          <li>🧲 <b>Calamita</b>: unisce subito tutti i pezzi uguali del tabellone, anche se sono lontani (almeno 3 uguali, stessa regola delle fusioni). Libera spazio, dà punti e monete.</li>
+        </ul>
+      </li>
       <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la partita in corso.</li>
-      <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>bonus</b> (martello, arcobaleno, dado, calamita), per le scorte e per i pezzi mancanti dell'album.</li>
+      <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
@@ -871,12 +879,12 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const BASE_ICONS = ICONS.slice(0, 3);
   /* Economia */
   const BONUS = {
-    hammer: { e: '🔨', n: 'Martello', tip: 'Togli un pezzo dal tabellone.', price: 200 },
-    rainbow: { e: '🌈', n: 'Arcobaleno', tip: 'Un jolly: diventa il pezzo che fa la fusione migliore.', price: 300 },
-    magnet: { e: '🧲', n: 'Calamita', tip: 'Unisce i pezzi uguali di tutto il tabellone, anche lontani (almeno 3).', price: 500 },
-    dice: { e: '🎲', n: 'Dado', tip: 'Cambia il prossimo pezzo.', price: 100 }
+    hammer: { e: '🔨', n: 'Martello', tip: 'Togli un pezzo dal tabellone.', price: 1200 },
+    rainbow: { e: '🌈', n: 'Arcobaleno', tip: 'Un jolly: diventa il pezzo che fa la fusione migliore.', price: 1500 },
+    magnet: { e: '🧲', n: 'Calamita', tip: 'Unisce i pezzi uguali di tutto il tabellone, anche lontani (almeno 3).', price: 2000 },
+    dice: { e: '🎲', n: 'Dado', tip: 'Cambia il prossimo pezzo.', price: 1000 }
   };
-  const BONUS_KEYS = ['hammer', 'rainbow', 'dice', 'magnet'];
+  const BONUS_KEYS = ['dice', 'hammer', 'rainbow', 'magnet']; /* in ordine di prezzo */
   const SLOT_PRICES = [0, 250, 800];
   const PUZZLE_N = 8;
   const piecePrice = k => 150 * (k + 1);
