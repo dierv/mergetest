@@ -278,7 +278,7 @@ body::before {
 .rung.flash { animation: rungFlash .9s cubic-bezier(.2, 1.3, .4, 1); }
 
 /* Bonus bar */
-.bonus-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 6px; padding: 6px; }
+.bonus-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 6px; padding: 6px; }
 .bonus {
   position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 6px 6px; border-radius: 14px; cursor: pointer; min-width: 0;
@@ -287,15 +287,14 @@ body::before {
 }
 .bonus:active { transform: scale(.95); }
 .bonus:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.bonus .b-em { font: 24px/1 var(--emoji); }
-.bonus .b-name { display: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bonus .b-em { font: 23px/1 var(--emoji); }
 .bonus .b-n { min-width: 1.5em; padding: 2px 6px; border-radius: 999px; background: var(--accent); color: #1c1206; font: 800 .76rem/1.1 var(--display); text-align: center; }
 .bonus .b-n.zero { background: var(--panel-line); color: var(--ink); }
 .bonus.armed { box-shadow: 0 0 0 3px var(--accent); background: var(--solid); animation: armed 1s ease-in-out infinite; }
 .bonus.attn { animation: attn .5s ease 4; }
 .tip {
-  position: absolute; bottom: calc(100% + 11px); left: 0; right: 0; transform: translateY(6px); z-index: 30;
-  padding: .45rem .5rem; border-radius: 12px;
+  position: absolute; bottom: calc(100% + 11px); left: -3px; right: -3px; transform: translateY(6px); z-index: 30;
+  padding: .4rem .35rem; border-radius: 12px; font-size: .7rem !important; hyphens: auto;
   background: var(--ink); color: var(--solid); font: 400 .74rem/1.25 var(--body); text-align: center;
   opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
 }
@@ -308,7 +307,6 @@ body.tips .tip { opacity: 1; transform: none; }
 }
 .info-btn[aria-pressed="true"] { background: var(--accent); color: #1c1206; border-color: transparent; }
 .info-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-@media (min-width: 430px) { .bonus .b-name { display: inline; } }
 
 /* Tab bar */
 .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
@@ -623,9 +621,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   </section>
 
   <section class="bonus-bar panel" aria-label="Bonus">
-    <button id="bonus-hammer" class="bonus" type="button"><span class="b-em">🔨</span><span class="b-name">Martello</span><span class="b-n">0</span><span class="tip">Martello: togli un pezzo dal tabellone</span></button>
-    <button id="bonus-rainbow" class="bonus" type="button"><span class="b-em">🌈</span><span class="b-name">Arcobaleno</span><span class="b-n">0</span><span class="tip">Arcobaleno: un jolly che diventa il pezzo della fusione migliore</span></button>
-    <button id="bonus-dice" class="bonus" type="button"><span class="b-em">🎲</span><span class="b-name">Dado</span><span class="b-n">0</span><span class="tip">Dado: cambia il prossimo pezzo</span></button>
+    <button id="bonus-hammer" class="bonus" type="button"><span class="b-em">🔨</span><span class="b-n">0</span><span class="tip">Martello: togli un pezzo dal tabellone</span></button>
+    <button id="bonus-rainbow" class="bonus" type="button"><span class="b-em">🌈</span><span class="b-n">0</span><span class="tip">Arcobaleno: un jolly che diventa il pezzo della fusione migliore</span></button>
+    <button id="bonus-dice" class="bonus" type="button"><span class="b-em">🎲</span><span class="b-n">0</span><span class="tip">Dado: cambia il prossimo pezzo</span></button>
+    <button id="bonus-magnet" class="bonus" type="button"><span class="b-em">🧲</span><span class="b-n">0</span><span class="tip">Calamita: unisce i pezzi uguali di tutto il tabellone (almeno 3)</span></button>
     <button id="tipsBtn" class="info-btn" type="button" aria-pressed="false" aria-label="A cosa servono i bonus">i</button>
   </section>
 
@@ -756,8 +755,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
       <li><b>Più pezzi, più premi</b>: con 3 pezzi ne nasce 1 superiore, con 5 ne nascono 2, con 7 ne nascono 3, e così via.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
+      <li><b>Calamita</b> 🧲: unisce tutti i pezzi uguali del tabellone anche se sono lontani, con la stessa regola (almeno 3 uguali). Libera spazio, dà punti e monete.</li>
       <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la partita in corso.</li>
-      <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>bonus</b> (martello, arcobaleno, dado), per le scorte e per i pezzi mancanti dell'album.</li>
+      <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>bonus</b> (martello, arcobaleno, dado, calamita), per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
@@ -873,9 +873,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const BONUS = {
     hammer: { e: '🔨', n: 'Martello', tip: 'Togli un pezzo dal tabellone.', price: 50 },
     rainbow: { e: '🌈', n: 'Arcobaleno', tip: 'Un jolly: diventa il pezzo che fa la fusione migliore.', price: 80 },
+    magnet: { e: '🧲', n: 'Calamita', tip: 'Unisce i pezzi uguali di tutto il tabellone, anche lontani (almeno 3).', price: 120 },
     dice: { e: '🎲', n: 'Dado', tip: 'Cambia il prossimo pezzo.', price: 30 }
   };
-  const BONUS_KEYS = ['hammer', 'rainbow', 'dice'];
+  const BONUS_KEYS = ['hammer', 'rainbow', 'dice', 'magnet'];
   const SLOT_PRICES = [0, 250, 800];
   const PUZZLE_N = 8;
   const piecePrice = k => 150 * (k + 1);
@@ -931,7 +932,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   /* Completa i dati dei giocatori salvati con le versioni precedenti. */
   function normPlayer(p) {
     if (typeof p.coins !== 'number') p.coins = 0;
-    if (!p.inv) p.inv = { hammer: 2, rainbow: 1, dice: 2 };
+    if (!p.inv) p.inv = { hammer: 2, rainbow: 1, dice: 2, magnet: 1 };
+    if (typeof p.inv.magnet !== 'number') p.inv.magnet = 1; /* regalo a chi giocava già */
     BONUS_KEYS.forEach(k => { if (typeof p.inv[k] !== 'number') p.inv[k] = 0; });
     if (!Array.isArray(p.icons)) p.icons = BASE_ICONS.slice();
     if (p.icon && !p.icons.includes(p.icon)) p.icons.push(p.icon);
@@ -1628,9 +1630,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     const r = Math.random();
     if (r < .45) { const c = 30 + Math.floor(Math.random() * 10) * 10; p.coins += c; return { e: '🪙', t: `+${c} monete`, s: 'Spendile nel negozio: tocca le monete in alto.' }; }
-    const k = r < .65 ? 'hammer' : r < .83 ? 'dice' : 'rainbow';
+    const k = r < .63 ? 'hammer' : r < .79 ? 'dice' : r < .92 ? 'rainbow' : 'magnet';
     p.inv[k]++;
-    return { e: BONUS[k].e, t: `Un ${BONUS[k].n.toLowerCase()} in più`, s: BONUS[k].tip };
+    return { e: BONUS[k].e, t: k === 'magnet' ? 'Una calamita in più' : `Un ${BONUS[k].n.toLowerCase()} in più`, s: BONUS[k].tip };
   }
   $('chestBtn').addEventListener('click', () => {
     const b = $('chestBtn'), p = me();
@@ -1849,9 +1851,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       track('merge', 1); track('reach', lvl); track('score', S.score); track('coins', coinGain);
       if (st.make > 1) track('double', 1);
       if (combo > 1) track('combo', combo);
-      const extras = onReach(lvl);
-      if (lvl > S.maxL) { S.maxL = lvl; setSky(); renderLadder(true); }
-      if (lvl >= S.maxL && (extras.length || lvl === S.maxL)) celebrate(lvl, extras);
+      const isNew = lvl > S.maxL, extras = onReach(lvl);
+      if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
+      if (isNew || extras.length) celebrate(lvl, extras);
       await sleep(combo < sim.steps.length ? 330 : 260);
     }
     S.moves++;
@@ -1862,7 +1864,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!S) return;
     const p = me(), full = S.grid.every(v => v >= 0), was = S.over;
     const canHammer = p && (p.inv.hammer > 0 || p.coins >= BONUS.hammer.price);
-    S.over = full && !canHammer;
+    const canMagnet = p && magnetPlan(S.grid).steps.length > 0 && (p.inv.magnet > 0 || p.coins >= BONUS.magnet.price);
+    S.over = full && !canHammer && !canMagnet;
     if (S.over && !was) { pushOnline(true); shake(2); buzz([60, 40, 60]); sfx('over'); }
     return full;
   }
@@ -1879,8 +1882,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     $('undoBtn').disabled = !prev;
     save(); showOver(); flushMissions();
     if (full && !S.over) {
-      toast(pl.inv.hammer > 0 ? 'Tabellone pieno: usa il martello' : 'Tabellone pieno: compra un martello');
-      attn('hammer');
+      const mg = magnetPlan(S.grid).steps.length > 0;
+      if (mg && pl.inv.magnet > 0) { toast('Tabellone pieno: usa la calamita'); attn('magnet'); }
+      else { toast(pl.inv.hammer > 0 ? 'Tabellone pieno: usa il martello' : 'Tabellone pieno: compra un martello o una calamita'); attn('hammer'); }
     }
     if (hoverIdx >= 0) preview(hoverIdx);
   }
@@ -1919,10 +1923,74 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       toast('Prossimo pezzo: ' + nameOf(S.cur));
       return;
     }
+    if (k === 'magnet') { useMagnet(); return; }
     armed = armed === k ? null : k;
     clearPreview(); renderBonus(); sfx('tap');
     if (armed) toast(k === 'hammer' ? 'Tocca il pezzo da togliere' : 'Tocca una casella vuota per l\'arcobaleno');
   }
+  /* Calamita: per ogni tipo di pezzo con almeno 3 copie sul tabellone, le unisce tutte con la regola normale
+     (n pezzi → floor((n-1)/2) superiori), partendo dai pezzi più piccoli e ripetendo a catena.
+     I pezzi nuovi nascono nelle caselle del gruppo più vicine al suo centro. */
+  function magnetPlan(g0) {
+    const g = g0.slice(), steps = [];
+    for (let guard = 0; guard < 60; guard++) {
+      const byL = {};
+      g.forEach((v, i) => { if (v >= 0) (byL[v] = byL[v] || []).push(i); });
+      const L = Object.keys(byL).map(Number).sort((a, b) => a - b).find(l => byL[l].length >= 3);
+      if (L === undefined) break;
+      const cellsL = byL[L], n = cellsL.length, make = Math.floor((n - 1) / 2);
+      const cr = cellsL.reduce((a, i) => a + Math.floor(i / N), 0) / n, cc = cellsL.reduce((a, i) => a + i % N, 0) / n;
+      const dist = i => Math.hypot(Math.floor(i / N) - cr, i % N - cc);
+      const targets = cellsL.slice().sort((a, b) => dist(a) - dist(b)).slice(0, make);
+      cellsL.forEach(i => { g[i] = EMPTY; });
+      targets.forEach(i => { g[i] = L + 1; });
+      steps.push({ L, cells: cellsL, targets, make, n, gain: Math.round(value(L + 1) * n / 3) });
+    }
+    return { g, steps };
+  }
+  async function useMagnet() {
+    const p = me();
+    const plan = magnetPlan(S.grid);
+    if (!plan.steps.length) { toast('Servono almeno 3 pezzi uguali sul tabellone'); nudgeBonus('magnet'); return; }
+    saveUndo(); busy = true; clearPreview(); armed = null;
+    p.inv.magnet--; renderBonus(); track('bonus', 1);
+    comboBanner('Calamita!'); sfx('swap'); sfx('magic'); buzz([15, 30, 15]);
+    let k = 0;
+    for (const st of plan.steps) {
+      k++;
+      st.cells.forEach(j => {
+        const pc = cells[j].querySelector('.pc'); if (!pc) return;
+        pc.classList.remove('drop', 'pop', 'jelly'); void pc.offsetWidth; pc.classList.add('jelly');
+      });
+      await sleep(260);
+      /* ogni pezzo vola verso il punto d'arrivo più vicino */
+      const groups = new Map(st.targets.map(t => [t, []]));
+      st.cells.forEach(j => {
+        if (st.targets.includes(j)) return;
+        let best = st.targets[0], bd = Infinity;
+        st.targets.forEach(t => { const d = Math.hypot(Math.floor(j / N) - Math.floor(t / N), j % N - t % N); if (d < bd) { bd = d; best = t; } });
+        groups.get(best).push(j);
+      });
+      await Promise.all([...groups].map(([t, fr]) => flyTo(fr, t)));
+      st.cells.forEach(j => { S.grid[j] = EMPTY; renderCell(j); });
+      const lvl = st.L + 1;
+      st.targets.forEach(t => { S.grid[t] = lvl; renderCell(t, 'pop'); burst(t, lvl, 1); });
+      floatScore(st.targets[0], st.gain, k);
+      sfx('merge', lvl); buzz(18);
+      S.score += st.gain; renderScore();
+      const coinGain = lvl * st.make;
+      p.coins += coinGain; flyCoins(st.targets[0], coinGain);
+      track('merge', 1); track('reach', lvl); track('score', S.score); track('coins', coinGain);
+      if (st.make > 1) track('double', 1);
+      const isNew = lvl > S.maxL, extras = onReach(lvl);
+      if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
+      if (isNew || extras.length) celebrate(lvl, extras);
+      await sleep(320);
+    }
+    S.moves++;
+    busy = false; afterMove(false);
+  }
+  function nudgeBonus(k) { attn(k); sfx('nope'); }
   function undo() {
     if (busy || !prev) return;
     const pr = prev.S ? prev : { S: prev, econ: null };
