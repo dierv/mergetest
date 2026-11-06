@@ -1,4 +1,6 @@
-const CACHE = 'seme-stelle-v1';
+/* Cache per giocare offline: solo i file del gioco e i font.
+   Firebase e ogni altro indirizzo passano sempre dalla rete, così la classifica è sempre aggiornata. */
+const CACHE = 'seme-stelle-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -12,6 +14,10 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  const same = url.origin === self.location.origin;
+  const font = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+  if (!same && !font) return;
   const keep = res => {
     if (res && (res.ok || res.type === 'opaque')) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
     return res;
