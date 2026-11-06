@@ -96,10 +96,10 @@ body::before {
 .stash-slot {
   --cs: 40px; position: relative; width: 40px; height: 40px; padding: 0; cursor: pointer;
   border-radius: 30%; border: 2px dashed var(--panel-line); background: transparent;
-  display: grid; place-items: center; color: var(--ink-soft); touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--ink-soft); touch-action: manipulation;
 }
 .stash-slot .pc { inset: -2px; }
-.stash-slot.locked { border: 1px solid var(--panel-line); background: var(--cell); gap: 0; align-content: center; }
+.stash-slot.locked { border: 1px solid var(--panel-line); background: var(--cell); gap: 1px; }
 .stash-slot.locked .lk { font: 13px/1 var(--emoji); }
 .stash-slot.locked .pr { font: 800 .56rem/1 var(--display); color: var(--ink-soft); }
 .stash-slot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -107,7 +107,7 @@ body::before {
 .side-row { display: flex; align-items: center; gap: 8px; }
 .who {
   position: relative; width: 48px; height: 48px; flex: none; border-radius: 15px; cursor: pointer;
-  display: grid; place-items: center; font: 28px/1 var(--emoji);
+  display: flex; align-items: center; justify-content: center; text-align: center; font: 28px/1 var(--emoji);
   background: var(--cell); border: 1px solid var(--panel-line); touch-action: manipulation; padding: 0;
 }
 .who:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -267,7 +267,7 @@ body::before {
 .ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
 .rung {
   width: 100%; aspect-ratio: 1; padding: 0; border: 0; cursor: pointer;
-  display: grid; place-items: center; border-radius: 28%;
+  display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 28%;
   font: clamp(13px, 4.4vw, 22px)/1 var(--emoji);
   background: var(--bg); box-shadow: inset 0 -2px 0 var(--edge); touch-action: manipulation;
 }
@@ -313,7 +313,7 @@ body.tips .tip { opacity: 1; transform: none; }
 /* Tab bar */
 .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
 .tab {
-  position: relative; display: grid; justify-items: center; gap: 3px; padding: 6px 2px 5px; cursor: pointer;
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px; padding: 6px 2px 5px; cursor: pointer;
   font: 700 .68rem/1 var(--body); color: var(--ink); touch-action: manipulation;
 }
 .tab svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -376,7 +376,7 @@ body.tips .tip { opacity: 1; transform: none; }
 .err { margin: 0; min-height: 1.2em; font-size: .86rem; color: var(--danger); }
 .icons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .ico {
-  position: relative; aspect-ratio: 1; display: grid; place-items: center; cursor: pointer;
+  position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0; cursor: pointer;
   font: 28px/1 var(--emoji); border-radius: 16px;
   border: 1.5px solid var(--panel-line); background: transparent;
   transition: transform .12s ease; touch-action: manipulation;
@@ -453,8 +453,14 @@ body.tips .tip { opacity: 1; transform: none; }
 .album-head { display: flex; align-items: baseline; gap: 8px; }
 .album-name { font: 800 1.05rem/1.1 var(--display); }
 .album-chip { margin-left: auto; font: 700 .74rem/1 var(--body); padding: .3rem .55rem; border-radius: 999px; background: var(--solid); border: 1px solid var(--panel-line); white-space: nowrap; }
-.puzzle { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; aspect-ratio: 2 / 1; padding: 3px; border-radius: 14px; background: var(--panel-line); }
-.pz { border: 0; padding: 0; border-radius: 9px; cursor: pointer; background-size: 400% 200%; display: grid; place-items: center; font: 20px/1 var(--emoji); touch-action: manipulation; }
+.puzzle { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: auto; gap: 3px; padding: 3px; border-radius: 14px; background: var(--panel-line); }
+.pz {
+  width: 100%; aspect-ratio: 1; min-width: 0; border: 0; padding: 0; margin: 0; border-radius: 9px; cursor: pointer;
+  background-size: 400% 200%; background-repeat: no-repeat;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font: 20px/1 var(--emoji); touch-action: manipulation;
+}
+.pz span { display: block; line-height: 1; }
 .pz.have { cursor: default; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); }
 .pz.have.new { animation: pop .6s cubic-bezier(.2, .9, .3, 1) both; }
 .pz.miss { background: var(--solid); color: var(--ink-soft); opacity: .8; }
@@ -473,9 +479,9 @@ body.tips .tip { opacity: 1; transform: none; }
 .streak .fl { font: 30px/1 var(--emoji); }
 .streak b { display: block; font: 800 1.25rem/1.1 var(--display); color: var(--ink); }
 .miss-list { display: grid; gap: 8px; }
-.miss { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--cell); border: 1px solid var(--panel-line); }
-.miss.done:not(.claimed) { box-shadow: inset 0 0 0 2px var(--accent); }
-.miss.claimed { opacity: .6; }
+.mrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--cell); border: 1px solid var(--panel-line); }
+.mrow.done:not(.claimed) { box-shadow: inset 0 0 0 2px var(--accent); }
+.mrow.claimed { opacity: .6; }
 .miss-ic { font: 28px/1 var(--emoji); }
 .miss-body { display: grid; gap: 5px; min-width: 0; }
 .miss-t { font-weight: 700; font-size: .92rem; line-height: 1.25; }
@@ -1706,7 +1712,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       ? `Ogni 7 giorni di fila: +500 🪙. ${left === 1 ? 'Manca 1 giorno' : `Mancano ${left} giorni`}.`
       : 'Completa tutte le missioni ogni giorno: ogni 7 giorni di fila +500 🪙.';
     p.daily.list.forEach((m, i) => {
-      const d = MISSIONS[m.t], row = el('div', 'miss' + (m.done ? ' done' : '') + (m.claimed ? ' claimed' : ''));
+      const d = MISSIONS[m.t], row = el('div', 'mrow' + (m.done ? ' done' : '') + (m.claimed ? ' claimed' : ''));
       const body = el('div', 'miss-body'), bar = el('div', 'miss-bar'), fill = el('i');
       fill.style.width = Math.round(100 * m.prog / m.n) + '%'; bar.appendChild(fill);
       const progTxt = m.done ? 'Completata' : m.t === 'reach' ? `Gradino raggiunto oggi: ${m.prog} di ${m.n}` : `${fmt(m.prog)} / ${fmt(m.n)}`;
