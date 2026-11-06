@@ -468,6 +468,20 @@ body.tips .tip { opacity: 1; transform: none; }
 .pz.sel { box-shadow: inset 0 0 0 2px var(--accent); opacity: 1; }
 .pz:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .album-card.locked .puzzle { filter: grayscale(1); opacity: .55; }
+/* Puzzle a incastro (SVG) */
+.puzzle-box { padding: 6px; border-radius: 14px; background: var(--panel-line); }
+.jig { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; overflow: visible; }
+.jp-shape { fill: var(--solid); stroke: var(--ink-soft); stroke-opacity: .4; stroke-width: 3; stroke-dasharray: 12 9; }
+.jp.miss { cursor: pointer; outline: none; }
+.jp.miss:hover .jp-shape, .jp.sel .jp-shape, .jp.miss:focus-visible .jp-shape { stroke: var(--accent); stroke-opacity: 1; stroke-width: 7; stroke-dasharray: none; }
+.jp-em { font-size: 78px; font-family: var(--emoji); opacity: .4; pointer-events: none; }
+.jp.sel .jp-em { opacity: .85; }
+.jp-seam { fill: none; stroke: rgba(255, 255, 255, .8); stroke-width: 4; pointer-events: none; }
+.jp.have { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .28)); }
+.jp.new { animation: pop .6s cubic-bezier(.2, .9, .3, 1) both; transform-box: fill-box; transform-origin: center; }
+.jig.whole .jp.have { filter: none; }
+.jig.whole .jp-seam { stroke: rgba(255, 255, 255, .28); stroke-width: 2; }
+.album-card.locked .jig { filter: grayscale(1); opacity: .55; }
 .puzzle.whole { gap: 0; padding: 0; overflow: hidden; box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
 .puzzle.whole .pz { border-radius: 0; box-shadow: none; }
 .album-note { margin: 0; font-size: .82rem; color: var(--ink-soft); }
@@ -2104,42 +2118,91 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!pzCache[t.id]) pzCache[t.id] = paintScene(t);
     return pzCache[t.id];
   }
+  /* Tessere a incastro: 8 sagome (4×2) con linguette e incavi, uguali da entrambi i lati di ogni bordo. */
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const svgEl = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const JS = 240; /* lato di una tessera nel disegno 960×480 */
+  const jigCache = {};
+  function jigPaths(tid) {
+    if (jigCache[tid]) return jigCache[tid];
+    let seed = 11; for (const ch of tid) seed = (seed * 31 + ch.charCodeAt(0)) % 2147483647;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const hs = [0, 1, 2, 3].map(() => (rnd() < .5 ? 1 : -1));                 /* bordi tra le due righe */
+    const vs = [0, 1].map(() => [0, 1, 2].map(() => (rnd() < .5 ? 1 : -1)));   /* bordi tra le colonne */
+    /* Profilo della linguetta lungo un bordo: u lungo il bordo (0→1), v di quanto sporge */
+    const SHAPE = [['L', .34, 0], ['C', .40, 0, .42, .04, .38, .10], ['C', .33, .18, .40, .26, .50, .26], ['C', .60, .26, .67, .18, .62, .10], ['C', .58, .04, .60, 0, .66, 0], ['L', 1, 0]];
+    const edge = (A, B, n, sgn) => {
+      const P = (u, v) => [A[0] + (B[0] - A[0]) * u + n[0] * v * sgn * JS, A[1] + (B[1] - A[1]) * u + n[1] * v * sgn * JS];
+      return SHAPE.map(q => q[0] === 'L' ? { t: 'L', p: P(q[1], q[2]) } : { t: 'C', c1: P(q[1], q[2]), c2: P(q[3], q[4]), p: P(q[5], q[6]) });
+    };
+    /* Lo stesso bordo percorso al contrario (da B verso A) */
+    const rev = (A, segs) => {
+      const starts = [A].concat(segs.slice(0, -1).map(q => q.p));
+      return segs.map((q, i) => (q.t === 'L' ? { t: 'L', p: starts[i] } : { t: 'C', c1: q.c2, c2: q.c1, p: starts[i] })).reverse();
+    };
+    const f = n => n.toFixed(1), out = [];
+    for (let k = 0; k < PUZZLE_N; k++) {
+      const r = Math.floor(k / 4), c = k % 4, x0 = c * JS, y0 = r * JS, x1 = x0 + JS, y1 = y0 + JS;
+      const TL = [x0, y0], TR = [x1, y0], BR = [x1, y1], BL = [x0, y1];
+      const segs = [].concat(
+        r === 0 ? [{ t: 'L', p: TR }] : edge(TL, TR, [0, 1], hs[c]),
+        c === 3 ? [{ t: 'L', p: BR }] : edge(TR, BR, [1, 0], vs[r][c]),
+        r === 1 ? [{ t: 'L', p: BL }] : rev(BL, edge(BL, BR, [0, 1], hs[c])),
+        c === 0 ? [{ t: 'L', p: TL }] : rev(TL, edge(TL, BL, [1, 0], vs[r][c - 1]))
+      );
+      let d = `M${f(x0)} ${f(y0)}`;
+      segs.forEach(q => { d += q.t === 'L' ? ` L${f(q.p[0])} ${f(q.p[1])}` : ` C${f(q.c1[0])} ${f(q.c1[1])} ${f(q.c2[0])} ${f(q.c2[1])} ${f(q.p[0])} ${f(q.p[1])}`; });
+      out.push(d + ' Z');
+    }
+    return (jigCache[tid] = out);
+  }
   let selPiece = null, themeArm = null, freshPiece = null;
   function renderAlbum() {
     const box = $('albumList'), p = me(); box.replaceChildren();
     if (!p) return;
     const curT = theme().id;
     THEMES.forEach((t, ti) => {
-      const open = themeOpen(p, ti), got = albumOf(p, t.id);
+      const open = themeOpen(p, ti), got = open ? albumOf(p, t.id) : [];
       const card = el('div', 'album-card' + (open ? '' : ' locked') + (t.id === curT ? ' current' : ''));
       const head = el('div', 'album-head');
       head.append(el('span', 'album-name', t.name),
         el('span', 'album-chip', !open ? '🔒 Bloccato' : t.id === curT ? `In gioco · ${got.length}/${PUZZLE_N}` : got.length >= PUZZLE_N ? 'Completo ✓' : `${got.length}/${PUZZLE_N}`));
       card.appendChild(head);
-      const grid = el('div', 'puzzle' + (got.length >= PUZZLE_N ? ' whole' : '')), img = open ? puzzleImage(t) : null;
+      const img = open ? puzzleImage(t) : null, paths = jigPaths(t.id);
+      const pbox = el('div', 'puzzle-box');
+      const svg = svgEl('svg', { viewBox: '0 0 960 480', class: 'jig' + (got.length >= PUZZLE_N ? ' whole' : ''), role: 'group', 'aria-label': `Puzzle ${t.name}: ${got.length} pezzi su ${PUZZLE_N}` });
+      const defs = svgEl('defs', {}); svg.appendChild(defs);
+      const pick = k => {
+        if (!open) { toast(`Completa prima l'album «${THEMES[ti - 1].name}»`); return; }
+        selPiece = selPiece && selPiece.tid === t.id && selPiece.k === k ? null : { tid: t.id, k };
+        renderAlbum();
+      };
+      /* Prima le sagome vuote, poi i pezzi presi sopra, così le linguette si sovrappongono bene */
       for (let k = 0; k < PUZZLE_N; k++) {
-        const b = el('button', 'pz'); b.type = 'button';
-        const col = k % 4, row = Math.floor(k / 4), need = t.pieces[k + 1];
-        if (got.includes(k)) {
-          b.classList.add('have');
-          if (freshPiece && freshPiece.tid === t.id && freshPiece.k === k) b.classList.add('new');
-          b.style.backgroundImage = `url(${img})`;
-          b.style.backgroundPosition = `${col * 100 / 3}% ${row * 100}%`;
-          b.setAttribute('aria-label', `Pezzo ${k + 1}: preso`);
-        } else {
-          b.classList.add('miss');
-          b.appendChild(el('span', null, open ? need[0] : '?'));
-          if (selPiece && selPiece.tid === t.id && selPiece.k === k) b.classList.add('sel');
-          b.setAttribute('aria-label', open ? `Pezzo ${k + 1}: raggiungi ${need[1]}` : `Pezzo ${k + 1}: tema bloccato`);
-          b.addEventListener('click', () => {
-            if (!open) { toast(`Completa prima l'album «${THEMES[ti - 1].name}»`); return; }
-            selPiece = selPiece && selPiece.tid === t.id && selPiece.k === k ? null : { tid: t.id, k };
-            renderAlbum();
-          });
-        }
-        grid.appendChild(b);
+        if (got.includes(k)) continue;
+        const need = t.pieces[k + 1], sel = selPiece && selPiece.tid === t.id && selPiece.k === k;
+        const g = svgEl('g', { class: 'jp miss' + (sel ? ' sel' : ''), role: 'button', tabindex: '0',
+          'aria-label': open ? `Pezzo ${k + 1}: raggiungi ${need[1]}` : `Pezzo ${k + 1}: tema bloccato` });
+        g.appendChild(svgEl('path', { d: paths[k], class: 'jp-shape' }));
+        const tx = svgEl('text', { x: (k % 4) * JS + JS / 2, y: Math.floor(k / 4) * JS + JS / 2 + 4, class: 'jp-em', 'text-anchor': 'middle', 'dominant-baseline': 'central' });
+        tx.textContent = open ? need[0] : '?';
+        g.appendChild(tx);
+        g.addEventListener('click', () => pick(k));
+        g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(k); } });
+        svg.appendChild(g);
       }
-      card.appendChild(grid);
+      for (let k = 0; k < PUZZLE_N; k++) {
+        if (!got.includes(k)) continue;
+        const id = `jc-${t.id}-${k}`, cp = svgEl('clipPath', { id });
+        cp.appendChild(svgEl('path', { d: paths[k] })); defs.appendChild(cp);
+        const fresh = freshPiece && freshPiece.tid === t.id && freshPiece.k === k;
+        const g = svgEl('g', { class: 'jp have' + (fresh ? ' new' : ''), 'aria-label': `Pezzo ${k + 1}: preso` });
+        g.appendChild(svgEl('image', { href: img, x: 0, y: 0, width: 960, height: 480, preserveAspectRatio: 'none', 'clip-path': `url(#${id})` }));
+        g.appendChild(svgEl('path', { d: paths[k], class: 'jp-seam' }));
+        svg.appendChild(g);
+      }
+      pbox.appendChild(svg);
+      card.appendChild(pbox);
       if (!open) card.appendChild(el('p', 'album-note', `Completa l'album «${THEMES[ti - 1].name}» per sbloccarlo.`));
       else {
         if (selPiece && selPiece.tid === t.id) {
