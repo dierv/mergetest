@@ -674,7 +674,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <p class="hint-text">Deve essere diverso da quello degli altri giocatori. Poi non si può cambiare.</p>
     <span id="iconLab" class="lab">Scegli un'icona</span>
     <div id="icons" class="icons" role="radiogroup" aria-labelledby="iconLab"></div>
-    <p class="hint-text">Le altre icone si sbloccano aprendo i forzieri.</p>
+    <p class="hint-text">Le altre icone escono dai forzieri man mano che completi l'album.</p>
     <p id="setupErr" class="err" role="alert"></p>
     <div class="sheet-actions">
       <button type="button" id="setupCancel" class="btn">Annulla</button>
@@ -696,7 +696,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     </div>
     <span class="lab">La tua icona</span>
     <div id="profIcons" class="icons"></div>
-    <p class="hint-text">Le icone con il lucchetto si sbloccano aprendo i forzieri. Il nome resta quello scelto.</p>
+    <p id="profIconHint" class="hint-text">Le icone con il lucchetto si sbloccano con i forzieri. Il nome resta quello scelto.</p>
     <div class="opt-row acct">
       <span id="acctText">Collegamento all'account…</span>
       <button id="acctBtn" type="button" class="btn google" hidden><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6C12.3 13.4 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-3.9-13.6-9.7l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>Salva con Google</button>
@@ -758,12 +758,12 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Calamita</b> 🧲: unisce tutti i pezzi uguali del tabellone anche se sono lontani, con la stessa regola (almeno 3 uguali). Libera spazio, dà punti e monete.</li>
       <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la partita in corso.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>bonus</b> (martello, arcobaleno, dado, calamita), per le scorte e per i pezzi mancanti dell'album.</li>
-      <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone.</li>
+      <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
       <li><b>Livello</b>: sali di 1 livello ogni 2 gradini nuovi scoperti, in tutti i temi.</li>
       <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il forziere del giorno; 7 giorni di fila valgono +500 monete.</li>
-      <li>La partita finisce quando il tabellone è pieno e non hai martelli.</li>
+      <li>La partita finisce quando il tabellone è pieno e non puoi usare né il martello né la calamita.</li>
       <li><b>Suoni</b>: musica e effetti partono al primo tocco. Su iPhone con l'interruttore silenzioso attivo non si sentono.</li>
     </ul>
     <div class="opt-row">
@@ -871,10 +871,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const BASE_ICONS = ICONS.slice(0, 3);
   /* Economia */
   const BONUS = {
-    hammer: { e: '🔨', n: 'Martello', tip: 'Togli un pezzo dal tabellone.', price: 50 },
-    rainbow: { e: '🌈', n: 'Arcobaleno', tip: 'Un jolly: diventa il pezzo che fa la fusione migliore.', price: 80 },
-    magnet: { e: '🧲', n: 'Calamita', tip: 'Unisce i pezzi uguali di tutto il tabellone, anche lontani (almeno 3).', price: 120 },
-    dice: { e: '🎲', n: 'Dado', tip: 'Cambia il prossimo pezzo.', price: 30 }
+    hammer: { e: '🔨', n: 'Martello', tip: 'Togli un pezzo dal tabellone.', price: 200 },
+    rainbow: { e: '🌈', n: 'Arcobaleno', tip: 'Un jolly: diventa il pezzo che fa la fusione migliore.', price: 300 },
+    magnet: { e: '🧲', n: 'Calamita', tip: 'Unisce i pezzi uguali di tutto il tabellone, anche lontani (almeno 3).', price: 500 },
+    dice: { e: '🎲', n: 'Dado', tip: 'Cambia il prossimo pezzo.', price: 100 }
   };
   const BONUS_KEYS = ['hammer', 'rainbow', 'dice', 'magnet'];
   const SLOT_PRICES = [0, 250, 800];
@@ -928,6 +928,13 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const level = p => Math.ceil(discSum(p) / 2);
   const albumOf = (p, tid) => (p.album && p.album[tid]) || [];
   const themeIndex = tid => Math.max(0, THEMES.findIndex(t => t.id === tid));
+  const albumTotal = p => THEMES.reduce((a, t) => a + albumOf(p, t.id).length, 0);
+  /* Icone sbloccabili finora: le 3 iniziali + una ogni ~5 pezzi d'album; con tutti gli 80 pezzi, tutte e 20. */
+  const iconCap = p => BASE_ICONS.length + Math.floor(albumTotal(p) * (ICONS.length - BASE_ICONS.length) / (THEMES.length * PUZZLE_N));
+  const piecesToNextIcon = p => {
+    const per = (THEMES.length * PUZZLE_N) / (ICONS.length - BASE_ICONS.length), got = albumTotal(p);
+    const nextK = p.icons.length - BASE_ICONS.length + 1; return Math.max(1, Math.ceil(nextK * per - 1e-9) - got);
+  };
   const themeOpen = (p, ti) => ti === 0 || albumOf(p, THEMES[ti - 1].id).length >= PUZZLE_N;
   /* Completa i dati dei giocatori salvati con le versioni precedenti. */
   function normPlayer(p) {
@@ -1586,7 +1593,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (a.length >= PUZZLE_N) {
       const ti = themeIndex(tid);
       p.coins += 300;
-      out.push(ti + 1 < THEMES.length ? `🔓 Nuovo tema: ${THEMES[ti + 1].name}! +300 🪙` : '🏆 Tutti gli album completi! +300 🪙');
+      out.push(ti + 1 < THEMES.length && albumTotal(p) < THEMES.length * PUZZLE_N ? `🔓 Nuovo tema: ${THEMES[ti + 1].name}! +300 🪙` : '🏆 Tutti gli album completi! +300 🪙');
+    }
+    if (albumTotal(p) >= THEMES.length * PUZZLE_N) {
+      const left = ICONS.filter(i => !p.icons.includes(i));
+      if (left.length) { p.icons.push(...left); out.push(`🎭 Tutte le icone sbloccate: ${left.join(' ')}`); }
     }
     return out;
   }
@@ -1623,7 +1634,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   function rollChest(p) {
     const locked = ICONS.filter(i => !p.icons.includes(i));
-    if (locked.length && Math.random() < .3) {
+    if (locked.length && p.icons.length < iconCap(p) && Math.random() < .3) {
       const ic = locked[Math.floor(Math.random() * locked.length)];
       p.icons.push(ic);
       return { e: ic, t: 'Nuova icona!', s: 'La trovi nel tuo profilo: tocca la tua icona in alto.' };
@@ -2369,7 +2380,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     $('profLv').replaceChildren(el('b', null, `Livello ${lv}`), document.createTextNode(` · per il prossimo scopri ${need} ${need === 1 ? 'gradino nuovo' : 'gradini nuovi'} della scala, in qualsiasi tema.`));
     $('stBest').textContent = fmt(p.best);
     $('stCoins').textContent = fmt(p.coins);
-    $('stAlbum').textContent = `${THEMES.reduce((a, t) => a + albumOf(p, t.id).length, 0)}/${THEMES.length * PUZZLE_N}`;
+    $('stAlbum').textContent = `${albumTotal(p)}/${THEMES.length * PUZZLE_N}`;
+    const lockedN = ICONS.filter(i => !p.icons.includes(i)).length, nPz = piecesToNextIcon(p);
+    $('profIconHint').textContent = !lockedN ? 'Hai sbloccato tutte le icone. Il nome resta quello scelto.'
+      : p.icons.length < iconCap(p) ? 'Una nuova icona ti aspetta nel prossimo forziere (non sempre esce subito). Il nome resta quello scelto.'
+      : `Le icone con il lucchetto escono dai forzieri, una ogni 5 pezzi d'album circa: la prossima ${nPz === 1 ? 'dopo il prossimo pezzo' : `dopo altri ${nPz} pezzi`}. Il nome resta quello scelto.`;
     iconGrid($('profIcons'), p.icons, p.icon, ic => {
       p.icon = ic; savePlayers();
       $('profAv').textContent = ic; renderTop(); renderRanks(); pushOnline();
