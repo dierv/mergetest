@@ -738,9 +738,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
       <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la partita in corso.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>bonus</b> (martello, arcobaleno, dado), per le scorte e per i pezzi mancanti dell'album.</li>
-      <li><b>Forzieri</b>: si aprono a 500, 1.500, 3.000… punti nella stessa partita. Danno monete, bonus o nuove icone.</li>
+      <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
-      <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto, e i pezzi più piccoli rimasti sul tabellone crescono da soli. Mai più di 3 pezzi uguali di fila.</li>
+      <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
       <li><b>Livello</b>: sali di 1 livello ogni 2 gradini nuovi scoperti, in tutti i temi.</li>
       <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il forziere del giorno; 7 giorni di fila valgono +500 monete.</li>
       <li>La partita finisce quando il tabellone è pieno e non hai martelli.</li>
@@ -859,7 +859,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const SLOT_PRICES = [0, 250, 800];
   const PUZZLE_N = 8;
   const piecePrice = k => 150 * (k + 1);
-  const chestAt = k => 500 * (k + 1) * (k + 2) / 2;
+  /* Soglie dei forzieri: 500, 1.000, 2.000, 4.000… (ogni volta il doppio, perché i punti crescono di 3 volte a gradino) */
+  const chestAt = k => 500 * Math.pow(2, k);
 
   /* Animazioni: accese di default, spegnibili da Info. Il "movimento ridotto" del sistema toglie solo le scosse. */
   const osReduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -934,7 +935,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     s.grid = s.grid.map(v => (v < -1 ? EMPTY : v));
     if (!s.theme || !THEMES.some(t => t.id === s.theme) || (p && !themeOpen(p, themeIndex(s.theme)))) s.theme = (p && p.theme) || 'seme';
     if (typeof s.open !== 'number') s.open = 1;
-    if (typeof s.chests !== 'number') { s.chests = 0; while (chestAt(s.chests) <= s.score) s.chests++; }
+    if (typeof s.chests !== 'number' || s.chestV !== 2) { s.chests = 0; while (chestAt(s.chests) <= s.score) s.chests++; s.chestV = 2; }
     return s;
   }
 
@@ -993,10 +994,18 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   /* Il pezzo più piccolo che può uscire sale con i progressi: 5 gradini sotto il pezzo più alto raggiunto. */
   const floorOf = maxL => Math.max(0, (maxL || 0) - 5);
-  /* Estrae il prossimo pezzo: di solito il minimo, a volte 1-3 gradini sopra; mai più di 3 uguali di fila. */
+  /* Estrae il prossimo pezzo: di solito il minimo, a volte 1-3 gradini sopra; mai più di 3 uguali di fila.
+     I pezzi sotto il minimo continuano a uscire finché ce n'è almeno uno sul tabellone o in scorta,
+     così si possono finire con le fusioni; quando spariscono non ricompaiono più. */
   function draw(st) {
     const maxL = (st && st.maxL) || 0, F = floorOf(maxL);
     const opts = [[F, 55], [F + 1, 28], [F + 2, maxL >= F + 4 ? 12 : 4], [F + 3, maxL >= F + 5 ? 5 : 0]];
+    if (st && Array.isArray(st.grid)) {
+      const low = new Set();
+      st.grid.forEach(v => { if (v >= 0 && v < F) low.add(v); });
+      (st.slots || []).forEach(v => { if (v !== null && v >= 0 && v < F) low.add(v); });
+      low.forEach(l => opts.push([l, 18]));
+    }
     const rec = (st && Array.isArray(st.recent)) ? st.recent : [];
     const last = rec[rec.length - 1];
     const streak = rec.length >= 3 && rec.slice(-3).every(v => v === last) ? last : null;
@@ -1006,18 +1015,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (st) st.recent = rec.concat(pick).slice(-6);
     return pick;
   }
-  /* Quando il minimo sale, i pezzi più piccoli rimasti sul tabellone e nella scorta crescono al nuovo minimo. */
-  function raiseFloor(animate) {
-    const F = floorOf(S.maxL);
-    if (F <= (S.floor || 0)) return null;
-    S.floor = F;
-    let grown = 0;
-    S.grid.forEach((v, i) => { if (v >= 0 && v < F) { S.grid[i] = F; grown++; if (animate) { renderCell(i, 'pop'); burst(i, F, 1); } } });
-    S.slots = S.slots.map(v => (v !== null && v < F ? F : v));
-    if (S.cur < F) S.cur = F;
-    const m = meta(F);
-    return `🌱 Da ora il pezzo più piccolo è ${m.e} ${m.n}` + (grown ? `: ${grown} pezzi piccoli sono cresciuti` : '');
-  }
+
   function newState(tid) {
     const g = Array(SIZE).fill(EMPTY);
     let placed = 0, guard = 0;
@@ -1032,7 +1030,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const maxL = Math.max(0, ...g), p = me();
     let theme = tid || (p && p.theme) || 'seme';
     if (p && !themeOpen(p, themeIndex(theme))) theme = 'seme';
-    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, moves: 0, recordAtStart: myBest(), theme, chests: 0, open: 1, floor: 0, recent: [] };
+    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, moves: 0, recordAtStart: myBest(), theme, chests: 0, chestV: 2, open: 1, floor: 0, recent: [] };
     st.cur = draw(st);
     return st;
   }
@@ -1587,7 +1585,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     let n = 0;
     while (S.score >= chestAt(S.chests)) { S.chests++; n++; }
     if (!n) return;
-    chestQueue += n; prev = null;
+    chestQueue += 1; prev = null;
     setTimeout(nextChest, celebrating() ? 1900 : 500);
   }
   function nextChest() {
@@ -1838,8 +1836,6 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     S.moves++;
     if (!rainbow) S.cur = draw(S);
-    const grew = raiseFloor(true);
-    if (grew) { toast(grew); sfx('magic'); }
     busy = false; afterMove(!rainbow);
   }
   function updateOver() {
@@ -2271,7 +2267,6 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const p = me();
     const loaded = loadGame(id);
     S = loaded ? normState(loaded, p) : newState();
-    raiseFloor(false);
     prev = null; armed = null; lastScore = S.score;
     clearPreview(); closeSetup(); resetNewBtn();
     renderAll('drop');
@@ -2645,7 +2640,6 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const p = me();
     if (data && validGame(data.S) && p) { S = normState(data.S, p); prev = data.prev || null; }
     else { const g = p && loadGame(P.current); S = g ? normState(g, p) : newState(); }
-    raiseFloor(false);
     savePlayers();
     lastScore = S.score;
     drawStars(); sizeParticles();
@@ -2654,6 +2648,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     initAuth(); renderAccount();
     pullOnline().then(() => pushOnline(true));
   }
+  /* Solo per i test automatici (?debug=1): stato interno in sola lettura */
+  if (/[?&]debug=1/.test(location.search)) window.__seme = () => ({ busy, S: JSON.parse(JSON.stringify(S)) });
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, prev, P }));
   if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
   else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
