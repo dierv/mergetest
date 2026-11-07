@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107183215">
+<meta name="app-version" content="20261107193334">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -863,7 +863,7 @@ body.dev-on .dev { display: flex; }
         </ul>
       </li>
       <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La prima casella c'è solo finché hai una 🛖 Capanna sul tabellone (senza, si chiude e il pezzo torna in fila); la seconda e la terza si comprano con le monete e valgono solo per la scalata in corso.</li>
-      <li><b>Trascinare</b>: il pezzo "Prossimo" si può trascinare su una casella vuota o dentro una Casa/Borgo. Da una Casa/Borgo il pezzo si trascina fuori su una casella vuota (lo appoggi, è una mossa) o sul "Prossimo" (torna in mano, quello che avevi si mette in fila). Anche il Germoglio si può trascinare.</li>
+      <li><b>Trascinare</b>: il pezzo "Prossimo" si può trascinare su una casella vuota o dentro una Casa/Borgo; anche i pezzi già sul tabellone si possono trascinare dentro una Casa/Borgo (è una mossa). Da una Casa/Borgo il pezzo si trascina fuori su una casella vuota (lo appoggi, è una mossa) o sul "Prossimo" (torna in mano, quello che avevi si mette in fila). Il Germoglio si trascina anche su una casella vuota.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
@@ -975,7 +975,7 @@ body.dev-on .dev { display: flex; }
     ['Potatura', 'toccalo due volte e torna al primo gradino. Serve quando ti manca il terzo pezzo piccolo. Conta come una mossa.'],
     ['Vedetta', 'finché ce n\'è uno sul tabellone vedi anche il pezzo dopo il prossimo.'],
     ['Riparo', 'finché ce n\'è una sul tabellone hai la 1ª casella di scorta. Senza, la scorta si chiude e il pezzo che c\'era torna in fila.'],
-    ['Ospita 1', 'trascinaci sopra il prossimo pezzo per metterlo dentro. Per tirarlo fuori trascinalo dalla casa su una casella vuota (lo appoggi) o sul "Prossimo" (torna in mano).'],
+    ['Ospita 1', 'trascinaci sopra il prossimo pezzo, o un pezzo del tabellone, per metterlo dentro. Per tirarlo fuori trascinalo dalla casa su una casella vuota (lo appoggi) o sul "Prossimo" (torna in mano).'],
     ['Ospita 3', 'come la precedente, ma con 3 posti. Esce per primo il pezzo con il bollino arancione; toccando la casa cambi l\'ordine.'],
     ['Tesoro', 'quando lo costruisci, un regalo 🎁 compare in una casella liberata dalla fusione.'],
     ['Mercato', 'finché ce n\'è uno sul tabellone i poteri costano il 25% in meno.'],
@@ -1259,8 +1259,10 @@ body.dev-on .dev { display: flex; }
       if (e.pointerType !== 'mouse') { pressIdx = i; preview(i); }
       dragArm(e, b, () => {
         if (!S || busy || S.over || S.done || !me() || armed) return null;
-        if (S.grid[i] === 0) return { kind: 'sprout', from: i, piece: 0 };
-        if (HOST[S.grid[i]] && S.held[i] && S.held[i].length) return { kind: 'house', from: i, piece: S.held[i][0] };
+        const v = S.grid[i];
+        if (v === 0) return { kind: 'sprout', from: i, piece: 0 };
+        if (HOST[v] && S.held[i] && S.held[i].length) return { kind: 'house', from: i, piece: S.held[i][0] };
+        if (v >= 0) return { kind: 'piece', from: i, piece: v };
         return null;
       });
     });
@@ -1316,7 +1318,7 @@ body.dev-on .dev { display: flex; }
       h.forEach((x, k) => box.appendChild(el('span', 'hold' + (k === 0 ? ' first' : ''), meta(x).e)));
       c.appendChild(box);
     }
-    c.classList.toggle('can-drag', v === 0 || !!(HOST[v] && h && h.length));
+    c.classList.toggle('can-drag', v >= 0);
     if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'regalo, tocca per aprirlo' : nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
   }
@@ -2083,6 +2085,7 @@ body.dev-on .dev { display: flex; }
         : m.k === 'move' ? `${em(m.v)} trapianto da ${pos(m.f)} a ${pos(m.i)}`
         : m.k === 'prune' ? `✂️ potatura in ${pos(m.i)}`
         : m.k === 'house' ? `${em(m.v)} uscito dalla casa in ${pos(m.f)} e appoggiato in ${pos(m.i)}`
+        : m.k === 'in' ? `${em(m.v)} da ${pos(m.f)} entrato nella casa in ${pos(m.i)}`
         : `${m.k === 'rainbow' ? '🌈 arcobaleno' : em(m.v)} in ${pos(m.i)}`;
       out.push('', `#${k + 1} ${h} · ${what}`);
       if (m.b) out.push('prima:', board(m.b));
@@ -2153,7 +2156,11 @@ body.dev-on .dev { display: flex; }
       reconcileHeld();
       busy = false; afterMove(); return;
     }
-    if (S.grid[idx] !== EMPTY) { if (armed === 'rainbow') { nudge(idx); toast('Tocca una casella vuota'); return; } tapPiece(idx); return; }
+    if (S.grid[idx] !== EMPTY) {
+      if (armed === 'rainbow') { nudge(idx); toast('Tocca una casella vuota'); return; }
+      if (picked !== null && picked !== idx && HOST[S.grid[idx]]) { const from = picked; unpick(); boardToHouse(from, idx); return; }
+      tapPiece(idx); return;
+    }
     if (picked !== null) { const from = picked; unpick(); await moveSprout(from, idx); return; }
     unpick();
     const keepNext = armed === 'rainbow', rainbow = keepNext || S.cur === JOLLY;
@@ -2217,9 +2224,12 @@ body.dev-on .dev { display: flex; }
     if (cell) {
       const i = cells.indexOf(cell); if (i < 0 || !S) return null;
       const v = S.grid[i];
-      if (drag.kind === 'next') { if (v === EMPTY) return cell; if (HOST[v] && (S.held[i] || []).length < HOST[v]) return cell; return null; }
+      const room = HOST[v] && (S.held[i] || []).length < HOST[v];
+      if (drag.kind === 'next') return (v === EMPTY || room) ? cell : null;
       if (i === drag.from) return null;
-      return v === EMPTY ? cell : null;
+      if (drag.kind === 'piece') return room ? cell : null;
+      if (drag.kind === 'sprout') return (v === EMPTY || room) ? cell : null;
+      return v === EMPTY ? cell : null; /* pezzo che esce da una casa */
     }
     const slot = elm.closest('.slot');
     if (slot && drag.kind === 'house') return $('nextTile');
@@ -2236,7 +2246,24 @@ body.dev-on .dev { display: flex; }
       return;
     }
     if (d.kind === 'house') { await hostPlace(d.from, i); return; }
+    if (d.kind === 'piece' || (d.kind === 'sprout' && HOST[S.grid[i]])) { boardToHouse(d.from, i); return; }
     if (d.kind === 'sprout') { await moveSprout(d.from, i); return; }
+  }
+  /* Un pezzo del tabellone entra in una Casa/Borgo (trascinato): conta come una mossa, la mano non cambia. */
+  function boardToHouse(from, to) {
+    if (!S || busy || from === to) return false;
+    const piece = S.grid[from], cap = HOST[S.grid[to]];
+    if (piece < 0 || !cap) return false;
+    const list = S.held[to] || (S.held[to] = []);
+    if (list.length >= cap) { nudge(to); toast('Non c\'è più posto'); return false; }
+    const before = S.grid.slice();
+    saveUndo(); unpick();
+    list.push(piece); S.grid[from] = EMPTY;
+    renderCell(from); renderCell(to); sfx('swap'); buzz(8);
+    S.moves++;
+    logMove({ k: 'in', i: to, f: from, v: piece, b: before, a: S.grid.slice() });
+    toast(`${meta(piece).e} entra (${list.length}/${cap})`);
+    reconcileHeld(); afterMove(false); return true;
   }
   $('nextTile').addEventListener('pointerdown', e => {
     noteActivity();
@@ -2281,7 +2308,7 @@ body.dev-on .dev { display: flex; }
     const list = S.held[idx] || [], cap = HOST[S.grid[idx]];
     nudge(idx);
     if (list.length > 1) { list.push(list.shift()); renderCell(idx); sfx('tap'); buzz(6); toast(`Esce per primo ${meta(list[0]).e}`); save(); return; }
-    toast(list.length ? `Trascina ${meta(list[0]).e} fuori: su una casella vuota o sul "Prossimo"` : `Trascina qui il prossimo pezzo per ospitarlo (${cap} post${cap === 1 ? 'o' : 'i'})`);
+    toast(list.length ? `Trascina ${meta(list[0]).e} fuori: su una casella vuota o sul "Prossimo"` : `Trascina qui il prossimo pezzo o un pezzo del tabellone (${cap} post${cap === 1 ? 'o' : 'i'})`);
   }
   /* Il prossimo pezzo entra in una Casa/Borgo (trascinato) */
   function hostPut(idx) {
