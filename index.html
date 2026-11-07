@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107130029">
+<meta name="app-version" content="20261107131107">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -692,7 +692,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <p class="hint-text">Deve essere diverso da quello degli altri giocatori. Poi non si può cambiare.</p>
     <span id="iconLab" class="lab">Scegli un'icona</span>
     <div id="icons" class="icons" role="radiogroup" aria-labelledby="iconLab"></div>
-    <p class="hint-text">Le altre icone escono dai forzieri man mano che completi l'album.</p>
+    <p class="hint-text">Le altre icone escono dai regali man mano che completi l'album.</p>
     <p id="setupErr" class="err" role="alert"></p>
     <div class="sheet-actions">
       <button type="button" id="setupCancel" class="btn">Annulla</button>
@@ -714,7 +714,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     </div>
     <span class="lab">La tua icona</span>
     <div id="profIcons" class="icons"></div>
-    <p id="profIconHint" class="hint-text">Le icone con il lucchetto si sbloccano con i forzieri. Il nome resta quello scelto.</p>
+    <p id="profIconHint" class="hint-text">Le icone con il lucchetto si sbloccano con i regali. Il nome resta quello scelto.</p>
     <div class="opt-row acct">
       <span id="acctText">Collegamento all'account…</span>
       <button id="acctBtn" type="button" class="btn google" hidden><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6C12.3 13.4 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-3.9-13.6-9.7l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>Salva con Google</button>
@@ -726,7 +726,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
 <div id="shopSheet" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
     <h2 id="shopTitle">Negozio</h2>
-    <p class="hint-text">Hai <b id="shopCoins">0</b> monete. Le guadagni con le fusioni e nei forzieri.</p>
+    <p class="hint-text">Hai <b id="shopCoins">0</b> monete. Le guadagni con le fusioni e nei regali.</p>
     <div id="shopList" class="shop-list"></div>
     <div class="sheet-actions"><button type="button" class="btn primary" data-close="shopSheet">Chiudi</button></div>
   </div>
@@ -750,7 +750,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <div id="dayChest" class="day-chest">
       <span class="dc-em">🎁</span>
       <p id="dayChestTxt"></p>
-      <button id="dayChestBtn" type="button" class="btn primary">Apri il forziere del giorno</button>
+      <button id="dayChestBtn" type="button" class="btn primary">Apri il regalo del giorno</button>
     </div>
     <div class="sheet-actions"><button type="button" class="btn primary" data-close="missSheet">Chiudi</button></div>
   </div>
@@ -777,7 +777,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>La scalata</b>: ogni tema ha il suo tabellone, sempre salvato; cambi tema quando vuoi dall'Album e ritrovi tutto com'era. La scalata parte dal tabellone vuoto e finisce in cima alla scala, al 12º gradino: lì il tema prende la sua ★ (basta arrivarci una volta), tu prendi 2.000 monete e riparti dal germoglio. Il record di ogni tema resta.</li>
       <li><b>Tabellone pieno</b>: se non puoi usare né il martello né la calamita, la scalata finisce. I punti tornano a zero e riparti con il tabellone vuoto dalle tessere a cui eri arrivato. Record, album, livello, monete e poteri restano.</li>
       <li><b>Annulla</b>: toglie l'ultima tessera appoggiata, se non ha fatto fusioni. Dopo una fusione non si torna indietro.</li>
-      <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai forzieri. Tocca la (i) per rivederli al volo.
+      <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai regali. Tocca la (i) per rivederli al volo.
         <ul class="powers">
           <li>🎲 <b>Dado</b>: cambia il prossimo pezzo con un altro.</li>
           <li>🔨 <b>Martello</b>: tocca il martello, poi un pezzo del tabellone per toglierlo.</li>
@@ -787,11 +787,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       </li>
       <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La seconda e la terza casella si comprano con le monete e valgono solo per la scalata in corso.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
-      <li><b>Forzieri</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un forziere 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Danno monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
+      <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
       <li><b>Livello</b>: sali di 1 livello ogni 2 gradini nuovi scoperti, in tutti i temi.</li>
-      <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il forziere del giorno; 7 giorni di fila valgono +500 monete.</li>
+      <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il regalo del giorno; 7 giorni di fila valgono +500 monete.</li>
       <li><b>Classifica</b>: una per ogni tema, in ordine di record, e quella generale in ordine di livello; nella generale accanto a ogni giocatore c'è il pezzo più alto raggiunto nel tema più avanzato che ha sbloccato. ★ = tema completato.</li>
       <li><b>Suoni</b>: musica e effetti partono al primo tocco. Su iPhone con l'interruttore silenzioso attivo non si sentono.</li>
     </ul>
@@ -823,7 +823,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
 <div id="chestSheet" class="sheet center" hidden>
   <div class="sheet-card chest-card" role="dialog" aria-modal="true" aria-labelledby="chestTitle">
     <div id="chestEmoji" class="chest-emoji shake">🎁</div>
-    <h2 id="chestTitle">Forziere!</h2>
+    <h2 id="chestTitle">Regalo!</h2>
     <p id="chestText" class="hint-text">Un premio per i punti di questa scalata.</p>
     <div class="sheet-actions center"><button id="chestBtn" type="button" class="btn primary">Apri</button></div>
   </div>
@@ -889,7 +889,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       })
     }))
   );
-  const SPECIAL = { [JOLLY]: ['🌈', 'Arcobaleno', '#ffffff', '#d6b4ef'], [CHEST]: ['🎁', 'Forziere', '#fff3c4', '#e2b22c'] };
+  const SPECIAL = { [JOLLY]: ['🌈', 'Arcobaleno', '#ffffff', '#d6b4ef'], [CHEST]: ['🎁', 'Regalo', '#fff3c4', '#e2b22c'] };
   const SKIES = [
     ['#e4f3dc', '#f7f0d6'], ['#d6efdc', '#f1f2cf'], ['#cbe8ef', '#eaf2d2'], ['#c0e0f3', '#f4eacd'],
     ['#acd5f2', '#f7e3c3'], ['#9ec8ee', '#f5d4b4'], ['#8fb3e2', '#f1bb98'], ['#7b90cf', '#eca48c'],
@@ -1192,7 +1192,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const c = cells[i];
     c.querySelectorAll('.pc').forEach(x => x.remove());
     const v = S.grid[i], r = Math.floor(i / N) + 1, col = i % N + 1;
-    if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'forziere, tocca per aprirlo' : nameOf(v)}`); }
+    if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'regalo, tocca per aprirlo' : nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
   }
   function renderHand(anim) {
@@ -1731,7 +1731,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     S.grid[at] = CHEST; prev = null;
     const board = S;
     setTimeout(() => { if (S !== board) return; renderCell(at, 'drop'); sparkle(center(at).x, center(at).y, '#e2b22c', 10, 1); sfx('coin'); }, celebrating() ? 900 : 250);
-    toast('Un forziere! Toccalo per aprirlo');
+    toast('Un regalo! Toccalo per aprirlo');
     return true;
   }
   const openingChests = new Set();
@@ -1752,7 +1752,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (busy || celebrating()) { setTimeout(nextChest, 500); return; }
     chestOpen = true; chestQueue--;
     $('chestEmoji').textContent = '🎁'; $('chestEmoji').className = 'chest-emoji shake';
-    $('chestTitle').textContent = chestLabel ? chestLabel[0] : 'Forziere!';
+    $('chestTitle').textContent = chestLabel ? chestLabel[0] : 'Regalo!';
     $('chestText').textContent = chestLabel ? chestLabel[1] : 'Un premio per i punti di questa scalata.';
     chestLabel = null;
     const b = $('chestBtn'); b.textContent = 'Apri'; b.dataset.stage = 'closed';
@@ -1796,7 +1796,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     score: { ic: '🎯', kind: 'sum', tiers: [800, 2000, 4500], text: n => `Guadagna ${fmt(n)} punti con le fusioni` },
     bonus: { ic: '🧰', kind: 'sum', tiers: [1, 2, 3], text: n => n === 1 ? 'Usa un bonus' : `Usa ${n} bonus` },
     coins: { ic: '🪙', kind: 'sum', tiers: [40, 90, 180], text: n => `Guadagna ${n} monete con le fusioni` },
-    chest: { ic: '🎁', kind: 'sum', tiers: [1, 1, 2], text: n => n === 1 ? 'Apri un forziere' : `Apri ${n} forzieri` }
+    chest: { ic: '🎁', kind: 'sum', tiers: [1, 1, 2], text: n => n === 1 ? 'Apri un regalo' : `Apri ${n} regali` }
   };
   const REWARDS = [40, 70, 120];
   const pad2 = n => String(n).padStart(2, '0');
@@ -1882,8 +1882,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const all = p.daily.list.every(m => m.claimed), dc = $('dayChest'), btn = $('dayChestBtn');
     dc.classList.toggle('ready', all && !p.daily.chest);
     btn.hidden = !(all && !p.daily.chest);
-    $('dayChestTxt').textContent = p.daily.chest ? 'Forziere del giorno già aperto. Torna domani!'
-      : all ? 'Hai completato tutte le missioni di oggi!' : 'Completa e riscuoti tutte e 3 le missioni per aprire il forziere del giorno.';
+    $('dayChestTxt').textContent = p.daily.chest ? 'Regalo del giorno già aperto. Torna domani!'
+      : all ? 'Hai completato tutte le missioni di oggi!' : 'Completa e riscuoti tutte e 3 le missioni per aprire il regalo del giorno.';
   }
   function claimMission(i, btn) {
     const p = me(); if (!p) return;
@@ -1907,7 +1907,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (st.count % 7 === 0) { p.coins += 500; extra = ` E per i ${st.count} giorni di fila: +500 monete!`; }
     savePlayers(); pushOnline();
     closeSheet('missSheet'); renderMissBadge(); renderTop();
-    chestLabel = ['Forziere del giorno', 'Hai completato le missioni di oggi.' + extra];
+    chestLabel = ['Regalo del giorno', 'Hai completato le missioni di oggi.' + extra];
     chestQueue++; nextChest();
   }
 
@@ -1951,7 +1951,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     a.forEach((m, k) => {
       const h = new Date(m.t).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const what = m.k === 'fix' ? `⚠️ pezzi non visibili, ridisegnati: ${m.cells.map(pos).join('; ')}`
-        : m.k === 'chest' ? `🎁 forziere aperto in ${pos(m.i)}`
+        : m.k === 'chest' ? `🎁 regalo aperto in ${pos(m.i)}`
         : m.k === 'magnet' ? '🧲 calamita'
         : m.k === 'hammer' ? `🔨 martello su ${pos(m.i)}`
         : `${m.k === 'rainbow' ? '🌈 arcobaleno' : em(m.v)} in ${pos(m.i)}`;
@@ -2657,7 +2657,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(ic === selected));
       b.setAttribute('aria-label', ok ? 'Icona ' + (k + 1) : 'Icona ' + (k + 1) + ' bloccata');
       b.addEventListener('click', () => {
-        if (!ok) { toast('Si sblocca aprendo un forziere'); return; }
+        if (!ok) { toast('Si sblocca aprendo un regalo'); return; }
         box.querySelectorAll('.ico').forEach(x => x.setAttribute('aria-checked', String(x === b)));
         onPick(ic);
       });
@@ -2675,8 +2675,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     $('stAlbum').textContent = `${albumTotal(p)}/${THEMES.length * PUZZLE_N}`;
     const lockedN = ICONS.filter(i => !p.icons.includes(i)).length, nPz = piecesToNextIcon(p);
     $('profIconHint').textContent = !lockedN ? 'Hai sbloccato tutte le icone. Il nome resta quello scelto.'
-      : p.icons.length < iconCap(p) ? 'Una nuova icona ti aspetta nel prossimo forziere (non sempre esce subito). Il nome resta quello scelto.'
-      : `Le icone con il lucchetto escono dai forzieri, una ogni 5 pezzi d'album circa: la prossima ${nPz === 1 ? 'dopo il prossimo pezzo' : `dopo altri ${nPz} pezzi`}. Il nome resta quello scelto.`;
+      : p.icons.length < iconCap(p) ? 'Una nuova icona ti aspetta nel prossimo regalo (non sempre esce subito). Il nome resta quello scelto.'
+      : `Le icone con il lucchetto escono dai regali, una ogni 5 pezzi d'album circa: la prossima ${nPz === 1 ? 'dopo il prossimo pezzo' : `dopo altri ${nPz} pezzi`}. Il nome resta quello scelto.`;
     iconGrid($('profIcons'), p.icons, p.icon, ic => {
       p.icon = ic; savePlayers();
       $('profAv').textContent = ic; renderTop(); renderRanks(); pushOnline();
