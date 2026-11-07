@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107112800">
+<meta name="app-version" content="20261107113439">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -402,8 +402,10 @@ body.tips .tip { opacity: 1; transform: none; }
 .rank .pos { font: 800 .95rem/1 var(--display); color: var(--ink-soft); text-align: right; font-variant-numeric: tabular-nums; }
 .rank:first-child .pos { color: var(--accent); }
 .rank .pi { font: 22px/1 var(--emoji); text-align: center; }
-.rank .pn { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rank .plv { font-weight: 400; font-size: .76rem; color: var(--ink-soft); margin-left: 6px; }
+.rank .pn { display: grid; min-width: 0; line-height: 1.15; }
+.rank .pname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank .psub { font-weight: 600; font-size: .74rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank .psub, .rank .pst { font-variant-numeric: tabular-nums; }
 .rank .ps { display: flex; align-items: center; gap: 6px; font: 800 .95rem/1 var(--display); font-variant-numeric: tabular-nums; }
 .rank .pb { font: 16px/1 var(--emoji); }
 .rank-empty { font-size: .9rem; color: var(--ink-soft); padding: 4px 6px; }
@@ -2532,9 +2534,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   function rankOf(id) { const i = ranked().findIndex(p => p.id === id); return i < 0 ? 0 : i + 1; }
   function rankRow(r, pos, tid) {
     const li = el('li', 'rank' + (r.id === P.current ? ' me' : ''));
-    const pn = el('span', 'pn', r.name), ps = el('span', 'ps');
+    const pn = el('span', 'pn'), ps = el('span', 'ps');
     const st = tid ? (r.starsMap[tid] || 0) : r.stars;
-    if (st) pn.appendChild(el('small', 'plv pst', '★' + st));
+    pn.appendChild(el('span', 'pname', r.name));
+    /* sotto il nome: il record della scalata migliore e le stelle */
+    const sub = [];
+    if (!tid && r.best > 0) sub.push('Record ' + fmt(r.best));
+    if (st) sub.push('★' + st);
+    if (sub.length) pn.appendChild(el('small', 'psub', sub.join(' · ')));
     if (tid) ps.appendChild(el('span', 'pv', fmt(r.rec[tid])));
     else ps.append(el('span', 'pb', r.top), el('span', 'pv', 'Liv. ' + r.lvl));
     li.append(el('span', 'pos', String(pos)), el('span', 'pi', r.icon), pn, ps);
