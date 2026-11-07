@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107105012">
+<meta name="app-version" content="20261107112800">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -452,6 +452,11 @@ body.tips .tip { opacity: 1; transform: none; }
 .album-card.current { box-shadow: inset 0 0 0 2px var(--accent); }
 .album-head { display: flex; align-items: baseline; gap: 8px; }
 .album-name { font: 800 1.05rem/1.1 var(--display); }
+.album-stars { font: 800 .95rem/1 var(--display); color: var(--star); }
+.album-rec { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .86rem; color: var(--ink-soft); }
+.album-rec b { color: var(--ink); }
+.album-rec .btn { margin-left: auto; padding: .4rem .75rem; font-size: .82rem; white-space: nowrap; }
+.rank .pst { color: var(--star); font-weight: 800; }
 .album-chip { margin-left: auto; font: 700 .74rem/1 var(--body); padding: .3rem .55rem; border-radius: 999px; background: var(--solid); border: 1px solid var(--panel-line); white-space: nowrap; }
 .puzzle { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: auto; gap: 3px; padding: 3px; border-radius: 14px; background: var(--panel-line); }
 .pz {
@@ -602,11 +607,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="over" class="over" hidden>
         <div class="over-card">
-          <h2>Tabellone pieno</h2>
+          <h2 id="overTitle">Tabellone pieno</h2>
           <p id="overText"></p>
           <div class="over-actions">
             <button id="overUndo" class="btn" type="button">Annulla l'ultima mossa</button>
-            <button id="overNew" class="btn primary" type="button">Nuova partita</button>
+            <button id="overNew" class="btn primary" type="button">Riparti</button>
           </div>
         </div>
       </div>
@@ -692,7 +697,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <div><div id="profName" class="prof-name"></div><div id="profLv" class="prof-lv"></div></div>
     </div>
     <div class="stats">
-      <div><span class="lab">Record</span><b id="stBest">0</b></div>
+      <div><span class="lab">Scalate ★</span><b id="stStars">0</b></div>
       <div><span class="lab">Monete</span><b id="stCoins">0</b></div>
       <div><span class="lab">Album</span><b id="stAlbum">0</b></div>
     </div>
@@ -745,7 +750,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <h2 id="ranksTitle">Classifica</h2>
     <p id="ranksNote" class="ranks-note">su questo dispositivo</p>
     <ol id="ranks" class="ranks-list"></ol>
-    <div class="sheet-actions"><button type="button" class="btn primary" data-close="ranksSheet">Chiudi</button></div>
+    <div class="sheet-actions"><button type="button" id="ranksBack" class="btn" hidden>Classifica generale</button><button type="button" class="btn primary" data-close="ranksSheet">Chiudi</button></div>
   </div>
 </div>
 
@@ -757,6 +762,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
       <li><b>Più pezzi, più premi</b>: con 3 pezzi ne nasce 1 superiore, con 5 ne nascono 2, con 7 ne nascono 3, e così via.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
+      <li><b>La scalata</b>: ogni tema ha il suo tabellone, sempre salvato; cambi tema quando vuoi dall'Album e ritrovi tutto com'era. La scalata parte dal tabellone vuoto e finisce in cima alla scala, al 12º gradino: lì prendi una ★, 2.000 monete e riparti dal germoglio. Il record di ogni tema resta.</li>
+      <li><b>Tabellone pieno</b>: se non puoi usare né il martello né la calamita, la scalata finisce. I punti tornano a zero e riparti con il tabellone vuoto dalle tessere a cui eri arrivato. Record, album, livello, monete e poteri restano.</li>
       <li><b>Annulla</b>: toglie l'ultima tessera appoggiata, se non ha fatto fusioni. Dopo una fusione non si torna indietro.</li>
       <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai forzieri. Tocca la (i) per rivederli al volo.
         <ul class="powers">
@@ -766,14 +773,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
           <li>🧲 <b>Calamita</b>: unisce subito tutti i pezzi uguali del tabellone, anche se sono lontani (almeno 3 uguali, stessa regola delle fusioni). Libera spazio, dà punti e monete.</li>
         </ul>
       </li>
-      <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la partita in corso.</li>
+      <li><b>Scorta</b>: tocca una casella della scorta per mettere da parte il prossimo pezzo o scambiarlo. La seconda e la terza si comprano con le monete e valgono solo per la scalata in corso.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
-      <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti nella stessa partita (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
+      <li><b>Forzieri</b>: si aprono a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio), al massimo uno per mossa. Danno monete, bonus o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
       <li><b>Livello</b>: sali di 1 livello ogni 2 gradini nuovi scoperti, in tutti i temi.</li>
       <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il forziere del giorno; 7 giorni di fila valgono +500 monete.</li>
-      <li>La partita finisce quando il tabellone è pieno e non puoi usare né il martello né la calamita.</li>
+      <li><b>Classifica</b>: in ordine di livello; accanto a ogni giocatore il pezzo più grande che ha sbloccato e le ★ delle scalate completate. Nell'Album trovi il record di ogni tema e la sua classifica.</li>
       <li><b>Suoni</b>: musica e effetti partono al primo tocco. Su iPhone con l'interruttore silenzioso attivo non si sentono.</li>
     </ul>
     <div class="opt-row">
@@ -795,7 +802,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <p id="verLine" class="hint-text"></p>
     <div class="sheet-actions">
       <button type="button" id="infoWho" class="btn">Cambia giocatore</button>
-      <button type="button" id="newBtn" class="btn">Nuova partita</button>
+      <button type="button" id="newBtn" class="btn">Svuota il tabellone</button>
       <button type="button" class="btn primary" data-close="infoSheet">Torna al gioco</button>
     </div>
   </div>
@@ -805,7 +812,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   <div class="sheet-card chest-card" role="dialog" aria-modal="true" aria-labelledby="chestTitle">
     <div id="chestEmoji" class="chest-emoji shake">🎁</div>
     <h2 id="chestTitle">Forziere!</h2>
-    <p id="chestText" class="hint-text">Un premio per i punti di questa partita.</p>
+    <p id="chestText" class="hint-text">Un premio per i punti di questa scalata.</p>
     <div class="sheet-actions center"><button id="chestBtn" type="button" class="btn primary">Apri</button></div>
   </div>
 </div>
@@ -881,6 +888,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     'https://mergetest-65a4e-default-rtdb.europe-west1.firebasedatabase.app',
     'https://mergetest-65a4e-default-rtdb.firebaseio.com'
   ];
+  const TOP = 11; /* indice dell'ultimo gradino: 12 gradini per tema */
+  const LS_BOARD = 'semeStelle.board.v2';
   const LS_GAME = 'semeStelle.game.v1', LS_PLAYERS = 'semeStelle.players.v1', LS_MOTION = 'semeStelle.motion.v1', LS_TIPS = 'semeStelle.tips.v1';
   const ICONS = ['🦊', '🐼', '🐸', '🐯', '🦁', '🐨', '🐙', '🦄', '🐲', '🐢', '🦉', '🐧', '🐝', '🦋', '🐬', '🐳', '🦖', '🐞', '🐱', '🐶'];
   const BASE_ICONS = ICONS.slice(0, 3);
@@ -942,6 +951,16 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const discSum = p => Object.values(p.disc || {}).reduce((a, v) => a + Math.min(v, 11), 0);
   const level = p => Math.ceil(discSum(p) / 2);
   const albumOf = (p, tid) => (p.album && p.album[tid]) || [];
+  const recOf = (p, tid) => (p && p.rec && Number(p.rec[tid])) || 0;
+  const starsOf = (p, tid) => (p && p.stars && Math.floor(Number(p.stars[tid]))) || 0;
+  const starsTotal = p => p && p.stars ? Object.values(p.stars).reduce((a, v) => a + (Math.floor(Number(v)) || 0), 0) : 0;
+  /* Il pezzo più grande sbloccato: in caso di parità vince il tema in gioco. */
+  function topOf(p) {
+    let best = { tid: 'seme', rung: 0 };
+    THEMES.forEach(t => { const r = Math.min((p.disc && p.disc[t.id]) || 0, TOP); if (r > best.rung || (r === best.rung && t.id === p.theme && r > 0)) best = { tid: t.id, rung: r }; });
+    const t = THEMES[themeIndex(best.tid)];
+    return { tid: best.tid, rung: best.rung, e: t.pieces[best.rung][0], n: t.pieces[best.rung][1] };
+  }
   const themeIndex = tid => Math.max(0, THEMES.findIndex(t => t.id === tid));
   const albumTotal = p => THEMES.reduce((a, t) => a + albumOf(p, t.id).length, 0);
   /* Icone sbloccabili finora: le 3 iniziali + una ogni ~5 pezzi d'album; con tutti gli 80 pezzi, tutte e 20. */
@@ -968,6 +987,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!Array.isArray(p.icons)) p.icons = BASE_ICONS.slice();
     if (p.icon && !p.icons.includes(p.icon)) p.icons.push(p.icon);
     if (!p.disc) { p.disc = {}; if (p.bestL) p.disc.seme = Math.min(p.bestL, 11); }
+    if (!p.rec || typeof p.rec !== 'object') { p.rec = {}; if (p.best > 0) p.rec[p.theme || 'seme'] = p.best; }
+    if (!p.stars || typeof p.stars !== 'object') p.stars = {};
+    p.best = Math.max(p.best || 0, ...Object.values(p.rec).map(Number).filter(isFinite));
     if (!p.album) {
       p.album = {};
       const got = Math.min(p.bestL || 0, PUZZLE_N);
@@ -987,6 +1009,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     s.grid = s.grid.map(v => (v < -1 ? EMPTY : v));
     if (!s.theme || !THEMES.some(t => t.id === s.theme) || (p && !themeOpen(p, themeIndex(s.theme)))) s.theme = (p && p.theme) || 'seme';
     if (typeof s.open !== 'number') s.open = 1;
+    if (typeof s.done !== 'boolean') s.done = false;
+    if (s.maxL > TOP || s.grid.some(v => v > TOP)) { s.maxL = TOP; s.grid = s.grid.map(v => Math.min(v, TOP)); s.done = true; }
+    if (typeof s.recordAtStart !== 'number') s.recordAtStart = 0;
     if (typeof s.chests !== 'number' || s.chestV !== 2) { s.chests = 0; while (chestAt(s.chests) <= s.score) s.chests++; s.chestV = 2; }
     return s;
   }
@@ -1068,21 +1093,23 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     return pick;
   }
 
-  function newState(tid) {
-    const g = Array(SIZE).fill(EMPTY);
+  /* Tabellone nuovo per una scalata. Con keepMax (dopo un tabellone pieno) si riparte dalle tessere
+     del gruppo a cui si era arrivati: le prime tessere e il minimo che esce restano quelli. */
+  function newState(tid, keepMax) {
+    const g = Array(SIZE).fill(EMPTY), F = floorOf(keepMax || 0);
     let placed = 0, guard = 0;
     while (placed < 7 && guard++ < 300) {
       const i = Math.floor(Math.random() * SIZE);
       if (g[i] !== EMPTY) continue;
-      const l = Math.random() < .68 ? 0 : (Math.random() < .75 ? 1 : 2);
+      const l = F + (Math.random() < .68 ? 0 : (Math.random() < .75 ? 1 : 2));
       g[i] = l;
       if (flood(g, i, l).length >= 3) { g[i] = EMPTY; continue; }
       placed++;
     }
-    const maxL = Math.max(0, ...g), p = me();
+    const maxL = Math.max(keepMax || 0, ...g), p = me();
     let theme = tid || (p && p.theme) || 'seme';
     if (p && !themeOpen(p, themeIndex(theme))) theme = 'seme';
-    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, moves: 0, recordAtStart: myBest(), theme, chests: 0, chestV: 2, open: 1, floor: 0, recent: [] };
+    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, done: false, moves: 0, recordAtStart: recOf(p, theme), theme, chests: 0, chestV: 2, open: 1, floor: 0, recent: [] };
     st.cur = draw(st);
     return st;
   }
@@ -1156,7 +1183,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       if (i >= open) {
         b.classList.add('locked');
         b.append(el('span', 'lk', '🔒'), el('span', 'pr', String(SLOT_PRICES[i])));
-        b.setAttribute('aria-label', `Scorta ${i + 1} bloccata: costa ${SLOT_PRICES[i]} monete per questa partita`);
+        b.setAttribute('aria-label', `Scorta ${i + 1} bloccata: costa ${SLOT_PRICES[i]} monete per questa scalata`);
       } else if (S.slots[i] === null) {
         b.setAttribute('aria-label', `Scorta ${i + 1} vuota: tocca per mettere da parte il prossimo pezzo`);
       } else {
@@ -1193,10 +1220,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     boardEl.classList.toggle('armed-hammer', armed === 'hammer');
   }
   function renderLadder(flash) {
-    const cyc = Math.floor(S.maxL / 12), base = cyc * 12, ol = $('ladder');
+    const ol = $('ladder');
     ol.replaceChildren();
-    for (let k = 0; k < 12; k++) {
-      const l = base + k, li = el('li'), b = el('button', 'rung');
+    for (let l = 0; l <= TOP; l++) {
+      const li = el('li'), b = el('button', 'rung');
       b.type = 'button';
       const known = l <= S.maxL + 1, m = meta(l);
       if (l === S.maxL) b.classList.add('current');
@@ -1213,9 +1240,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       });
       li.appendChild(b); ol.appendChild(li);
     }
-    $('cycleTag').textContent = cyc ? stars(cyc) : '';
+    const p = me(), n = p ? starsOf(p, S.theme) : 0;
+    $('cycleTag').textContent = n ? '★' + n : '';
+    $('cycleTag').title = n ? `Scalata completata ${n} ${n === 1 ? 'volta' : 'volte'}` : '';
     const g = S.maxL + 1;
-    $('goal').textContent = `Prossimo: ${meta(g).e} ${nameOf(g)}`;
+    $('goal').textContent = S.done ? 'Cima raggiunta! ★' : g > TOP ? 'Cima della scala' : `Prossimo: ${meta(g).e} ${nameOf(g)}`;
   }
   const rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
   const mix = (x, y, t) => '#' + rgb(x).map((v, i) => Math.round(v + (rgb(y)[i] - v) * t).toString(16).padStart(2, '0')).join('');
@@ -1246,19 +1275,31 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       x.beginPath(); x.arc(rnd() * w, rnd() * h, rnd() * 1.2 + .2, 0, Math.PI * 2); x.fill();
     }
   }
+  let overT = null;
   function showOver() {
-    const ov = $('over');
-    if (!S.over) { ov.hidden = true; return; }
-    const m = meta(S.maxL);
-    const rec = S.score > (S.recordAtStart || 0) ? ' Nuovo record personale!' : '';
-    const pos = rankOf(P.current);
-    $('overText').textContent = `Hai fatto ${fmt(S.score)} punti. Pezzo più grande: ${m.e} ${nameOf(S.maxL)}.${rec}${pos ? ` Sei ${pos}º in classifica.` : ''}`;
-    $('overUndo').disabled = !prev;
+    const ov = $('over'), p = me();
+    if (!S.done && !S.over) { ov.hidden = true; return; }
+    /* il pannello aspetta la fine della festa, così non si sovrappongono */
+    if (celebrating()) { ov.hidden = true; clearTimeout(overT); overT = setTimeout(showOver, 500); return; }
+    const tn = theme().name, rec = p ? recOf(p, S.theme) : 0, isRec = S.score > (S.recordAtStart || 0);
+    const recTxt = isRec ? ': nuovo record di questo tema!' : rec ? ` (record ${fmt(rec)}).` : '.';
+    if (S.done) {
+      const n = p ? starsOf(p, S.theme) : 0;
+      $('overTitle').textContent = '★ Cima raggiunta!';
+      $('overText').textContent = `Hai completato la scalata di «${tn}» con ${fmt(S.score)} punti${recTxt} Scalate completate in questo tema: ${n}. Ora si riparte dal germoglio: tabellone vuoto e punti da zero. Il record resta.`;
+      $('overUndo').hidden = true; $('overNew').textContent = 'Nuova scalata';
+    } else {
+      const m = meta(floorOf(S.maxL));
+      $('overTitle').textContent = 'Tabellone pieno';
+      $('overText').textContent = `La scalata di «${tn}» finisce qui con ${fmt(S.score)} punti${recTxt} Riparti con il tabellone vuoto e i punti da zero, dalle tessere a cui eri arrivato (da ${m.e} ${m.n} in su). Record, album, livello, monete e poteri restano.`;
+      $('overUndo').hidden = false; $('overUndo').disabled = !prev; $('overNew').textContent = 'Riparti';
+    }
     ov.hidden = false;
   }
   function renderAll(anim) {
     sizeCells();
     for (let i = 0; i < SIZE; i++) renderCell(i, anim, anim === 'drop' ? Math.floor(i / N) * 45 + (i % N) * 15 : 0);
+    updateOver();
     renderHand(); renderScore(); renderTop(); renderBonus(); renderLadder(); renderRanks(); setSky(); showOver(); renderMissBadge();
     $('undoBtn').disabled = !prev;
     save();
@@ -1551,7 +1592,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   function celebrate(lvl, extras, emoji, kicker, name) {
     const box = $('celebrate'), m = lvl == null ? null : meta(lvl);
     $('celeEmoji').textContent = emoji || m.e;
-    $('celeKicker').textContent = kicker || (lvl % 12 === 0 ? `Big Bang! Ciclo ${stars(lvl / 12)}` : 'Nuovo pezzo!');
+    $('celeKicker').textContent = kicker || 'Nuovo pezzo!';
     $('celeName').textContent = name || nameOf(lvl);
     const ex = $('celeExtra'); ex.replaceChildren();
     (extras || []).forEach(t => ex.appendChild(el('span', null, t)));
@@ -1583,7 +1624,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   function preview(i) {
     clearPreview(); clearHint();
-    if (busy || !S || S.over) return;
+    if (busy || !S || S.over || S.done) return;
     const c = cells[i];
     if (armed === 'hammer') { if (S.grid[i] >= 0) c.classList.add('smash-aim'); return; }
     if (S.grid[i] >= 0) return;
@@ -1600,7 +1641,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   function showHint() {
     const sheetOpen = document.querySelector('.sheet:not([hidden])');
-    if (busy || !S || S.over || !me() || sheetOpen || armed) { idleT = setTimeout(showHint, 7000); return; }
+    if (busy || !S || S.over || S.done || !me() || sheetOpen || armed) { idleT = setTimeout(showHint, 7000); return; }
     let best = null;
     for (let i = 0; i < SIZE; i++) {
       if (S.grid[i] >= 0) continue;
@@ -1660,7 +1701,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     chestOpen = true; chestQueue--;
     $('chestEmoji').textContent = '🎁'; $('chestEmoji').className = 'chest-emoji shake';
     $('chestTitle').textContent = chestLabel ? chestLabel[0] : 'Forziere!';
-    $('chestText').textContent = chestLabel ? chestLabel[1] : 'Un premio per i punti di questa partita.';
+    $('chestText').textContent = chestLabel ? chestLabel[1] : 'Un premio per i punti di questa scalata.';
     chestLabel = null;
     const b = $('chestBtn'); b.textContent = 'Apri'; b.dataset.stage = 'closed';
     openSheet('chestSheet'); buzz(20);
@@ -1699,8 +1740,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     merge: { ic: '🔗', kind: 'sum', tiers: [12, 25, 45], text: n => `Fai ${n} fusioni` },
     double: { ic: '✌️', kind: 'sum', tiers: [1, 2, 4], text: n => n === 1 ? 'Fai un Doppio (5 pezzi uguali insieme)' : `Fai ${n} Doppi (5 pezzi uguali insieme)` },
     combo: { ic: '⚡', kind: 'max', tiers: [2, 2, 3], text: n => `Fai una Combo ×${n} (fusioni a catena)` },
-    reach: { ic: '🪜', kind: 'max', tiers: [3, 4, 6], text: n => `Arriva a ${meta(n).e} ${meta(n).n} in una partita` },
-    score: { ic: '🎯', kind: 'max', tiers: [800, 2000, 4500], text: n => `Fai ${fmt(n)} punti in una partita` },
+    reach: { ic: '🪜', kind: 'max', tiers: [3, 4, 6], text: n => `Crea ${meta(n).e} ${meta(n).n} con una fusione` },
+    score: { ic: '🎯', kind: 'sum', tiers: [800, 2000, 4500], text: n => `Guadagna ${fmt(n)} punti con le fusioni` },
     bonus: { ic: '🧰', kind: 'sum', tiers: [1, 2, 3], text: n => n === 1 ? 'Usa un bonus' : `Usa ${n} bonus` },
     coins: { ic: '🪙', kind: 'sum', tiers: [40, 90, 180], text: n => `Guadagna ${n} monete con le fusioni` },
     chest: { ic: '🎁', kind: 'sum', tiers: [1, 1, 2], text: n => n === 1 ? 'Apri un forziere' : `Apri ${n} forzieri` }
@@ -1901,7 +1942,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     list.forEach(([cl]) => cl.remove());
   }
   async function place(idx) {
-    if (busy || !S || S.over) return;
+    if (busy || !S || S.over || S.done) return;
     const p = me();
     if (!p) { openSetup(); return; }
     noteActivity();
@@ -1954,12 +1995,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       S.score += st.gain; renderScore();
       const coinGain = lvl * st.make * combo;
       p.coins += coinGain; flyCoins(idx, coinGain);
-      track('merge', 1); track('reach', lvl); track('score', S.score); track('coins', coinGain);
+      track('merge', 1); track('reach', lvl); track('score', st.gain); track('coins', coinGain);
       if (st.make > 1) track('double', 1);
       if (combo > 1) track('combo', combo);
       const isNew = lvl > S.maxL, extras = onReach(lvl);
       if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
-      if (isNew || extras.length) celebrate(lvl, extras);
+      if (lvl >= TOP && !S.done) extras.push(...finishClimb());
+      if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
+      if (S.done) break;
       await sleep(combo < sim.steps.length ? 330 : 260);
     }
     S.moves++;
@@ -1968,8 +2011,28 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!rainbow) S.cur = draw(S);
     busy = false; afterMove(!rainbow);
   }
+  /* In cima alla scala: una stella per il tema, premio in monete, record aggiornato. Il tabellone si svuota
+     quando il giocatore tocca «Nuova scalata». */
+  function finishClimb() {
+    const p = me(), tid = S.theme; if (!p) return [];
+    S.done = true; S.over = false;
+    if (S.score > recOf(p, tid)) p.rec[tid] = S.score;
+    p.best = Math.max(p.best || 0, S.score);
+    p.stars[tid] = starsOf(p, tid) + 1;
+    const gift = 2000; p.coins += gift;
+    savePlayers(); prev = null;
+    return [`★ Scalata n. ${p.stars[tid]} completata! +${fmt(gift)} 🪙`];
+  }
+  function restartClimb(keepFloor) {
+    const p = me(); if (!p || busy) return;
+    const tid = S.theme, keep = keepFloor ? S.maxL : 0;
+    resetNewBtn(); closeSheet('infoSheet'); armed = null;
+    S = newState(tid, keep); prev = null; lastScore = 0; clearPreview(); renderAll('drop'); noteActivity();
+    pushOnline();
+  }
   function updateOver() {
     if (!S) return;
+    if (S.done) { S.over = false; return S.grid.every(v => v >= 0); }
     const p = me(), full = S.grid.every(v => v >= 0), was = S.over;
     const canHammer = p && (p.inv.hammer > 0 || p.coins >= BONUS.hammer.price);
     const canMagnet = p && magnetPlan(S.grid).steps.length > 0 && (p.inv.magnet > 0 || p.coins >= BONUS.magnet.price);
@@ -1980,8 +2043,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   function afterMove(newNext) {
     setTimeout(healBoard, 1200);
     const pl = me();
-    if (pl && (S.score > pl.best || S.maxL > (pl.bestL || 0))) {
-      if (S.score > pl.best) pl.best = S.score;
+    if (pl) {
+      if (S.score > recOf(pl, S.theme)) pl.rec[S.theme] = S.score;
+      pl.best = Math.max(pl.best || 0, S.score);
       pl.bestL = Math.max(pl.bestL || 0, S.maxL);
     }
     savePlayers(); pushOnline();
@@ -1990,7 +2054,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     renderHand(newNext === false ? '' : 'deal'); renderScore(); renderTop(); renderBonus(); renderLadder(); renderRanks();
     $('undoBtn').disabled = !prev;
     save(); showOver(); flushMissions();
-    if (full && !S.over) {
+    if (full && !S.over && !S.done) {
       const mg = magnetPlan(S.grid).steps.length > 0;
       if (mg && pl.inv.magnet > 0) { toast('Tabellone pieno: usa la calamita'); attn('magnet'); }
       else { toast(pl.inv.hammer > 0 ? 'Tabellone pieno: usa il martello' : 'Tabellone pieno: compra un martello o una calamita'); attn('hammer'); }
@@ -1998,7 +2062,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (hoverIdx >= 0) preview(hoverIdx);
   }
   function tapSlot(i) {
-    if (busy || !S || S.over) return;
+    if (busy || !S || S.over || S.done) return;
     const p = me();
     if (!p) { openSetup(); return; }
     noteActivity();
@@ -2018,7 +2082,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!p) { openSetup(); return; }
     noteActivity(); hideTips();
     if (!p.inv[k]) { openShop(k); return; }
-    if (S.over) return;
+    if (S.over || S.done) return;
     if (k === 'dice') {
       saveUndo();
       p.inv.dice--;
@@ -2091,11 +2155,13 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       S.score += st.gain; renderScore();
       const coinGain = lvl * st.make;
       p.coins += coinGain; flyCoins(st.targets[0], coinGain);
-      track('merge', 1); track('reach', lvl); track('score', S.score); track('coins', coinGain);
+      track('merge', 1); track('reach', lvl); track('score', st.gain); track('coins', coinGain);
       if (st.make > 1) track('double', 1);
       const isNew = lvl > S.maxL, extras = onReach(lvl);
       if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
-      if (isNew || extras.length) celebrate(lvl, extras);
+      if (lvl >= TOP && !S.done) extras.push(...finishClimb());
+      if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
+      if (S.done) break;
       await sleep(320);
     }
     S.moves++;
@@ -2113,16 +2179,12 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     clearPreview(); renderAll();
     toast('Mossa annullata');
   }
-  function resetNewBtn() { const b = $('newBtn'); delete b.dataset.armed; b.textContent = 'Nuova partita'; clearTimeout(confirmTimer); }
-  function newGame(tid) {
-    resetNewBtn(); closeSheet('infoSheet');
-    armed = null;
-    S = newState(tid); prev = null; lastScore = 0; clearPreview(); renderAll('drop'); noteActivity();
-  }
+  function resetNewBtn() { const b = $('newBtn'); delete b.dataset.armed; b.textContent = 'Svuota il tabellone'; clearTimeout(confirmTimer); }
   function askNew() {
     const b = $('newBtn');
-    if (S.moves === 0 || S.over || b.dataset.armed) { newGame(); return; }
-    b.dataset.armed = '1'; b.textContent = 'Sicuro? Tocca ancora';
+    if (S.done) { restartClimb(false); return; }
+    if (S.moves === 0 || S.over || b.dataset.armed) { restartClimb(true); return; }
+    b.dataset.armed = '1'; b.textContent = 'Sicuro? I punti di questa scalata vanno persi';
     clearTimeout(confirmTimer); confirmTimer = setTimeout(resetNewBtn, 2500);
   }
 
@@ -2153,7 +2215,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     });
     for (let i = 1; i < 3; i++) {
       const owned = S.open > i, avail = S.open === i;
-      box.appendChild(shopRow('📦', `Scorta ${i + 1}`, 'Una casella in più per mettere da parte i pezzi, per questa partita.',
+      box.appendChild(shopRow('📦', `Scorta ${i + 1}`, 'Una casella in più per mettere da parte i pezzi, per questa scalata.',
         owned ? 'Già sbloccata' : avail ? '' : 'Prima sblocca la scorta 2',
         owned || !avail ? null : SLOT_PRICES[i], () => { S.open = i + 1; }, 'slot' + i));
     }
@@ -2337,7 +2399,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     return (jigCache[tid] = out);
   }
-  let selPiece = null, themeArm = null, freshPiece = null;
+  let selPiece = null, freshPiece = null;
   function renderAlbum() {
     const box = $('albumList'), p = me(); box.replaceChildren();
     if (!p) return;
@@ -2345,9 +2407,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     THEMES.forEach((t, ti) => {
       const open = themeOpen(p, ti), got = open ? albumOf(p, t.id) : [];
       const card = el('div', 'album-card' + (open ? '' : ' locked') + (t.id === curT ? ' current' : ''));
-      const head = el('div', 'album-head');
-      head.append(el('span', 'album-name', t.name),
-        el('span', 'album-chip', !open ? '🔒 Bloccato' : t.id === curT ? `In gioco · ${got.length}/${PUZZLE_N}` : got.length >= PUZZLE_N ? 'Completo ✓' : `${got.length}/${PUZZLE_N}`));
+      const head = el('div', 'album-head'), stN = starsOf(p, t.id);
+      head.appendChild(el('span', 'album-name', t.name));
+      if (stN) { const st = el('span', 'album-stars', '★' + stN); st.title = `Scalata completata ${stN} ${stN === 1 ? 'volta' : 'volte'}`; head.appendChild(st); }
+      head.appendChild(el('span', 'album-chip', !open ? '🔒 Bloccato' : t.id === curT ? `In gioco · album ${got.length}/${PUZZLE_N}` : got.length >= PUZZLE_N ? 'Album completo ✓' : `Album ${got.length}/${PUZZLE_N}`));
       card.appendChild(head);
       const img = open ? puzzleImage(t) : null, paths = jigPaths(t.id);
       const pbox = el('div', 'puzzle-box');
@@ -2394,10 +2457,17 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
           b.addEventListener('click', () => buyPiece(t.id, k));
           row.appendChild(b); card.appendChild(row);
         } else if (got.length < PUZZLE_N) card.appendChild(el('p', 'album-note', 'Tocca un pezzo mancante per sapere come ottenerlo.'));
+        const rec = recOf(p, t.id), row = el('div', 'album-rec'), txt = el('span');
+        if (t.id === curT) { txt.append('Scalata in corso: '); txt.appendChild(el('b', null, fmt(S.score))); if (rec) txt.append(` · record ${fmt(rec)}`); }
+        else if (rec) { txt.append('Record scalata: '); txt.appendChild(el('b', null, fmt(rec))); }
+        else txt.append('Nessuna scalata ancora');
+        row.appendChild(txt);
+        const lb = el('button', 'btn', 'Classifica'); lb.type = 'button';
+        lb.addEventListener('click', () => { ranksMode = t.id; renderRanks(); closeSheet('albumSheet'); openSheet('ranksSheet'); pullOnline(); });
+        row.appendChild(lb); card.appendChild(row);
         if (t.id !== curT) {
-          const play = el('button', 'btn' + (themeArm === t.id ? '' : ''), themeArm === t.id ? 'Sicuro? La partita in corso si chiude' : 'Gioca con questo tema');
+          const play = el('button', 'btn primary', 'Gioca questo tema');
           play.type = 'button';
-          if (themeArm === t.id) play.dataset.armed = '1';
           play.addEventListener('click', () => playTheme(t.id));
           card.appendChild(play);
         }
@@ -2417,41 +2487,75 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (ex.length > 1) celebrate(null, ex.slice(1), '🧩', 'Album completo', THEMES[themeIndex(tid)].name);
     else toast(ex[0] || 'Pezzo aggiunto');
   }
+  /* Cambio tema: il tabellone di prima resta salvato e si ritrova com'era. */
   function playTheme(tid) {
-    const p = me(); if (!p) return;
-    if (S.moves > 0 && !S.over && themeArm !== tid) {
-      themeArm = tid; renderAlbum();
-      setTimeout(() => { if (themeArm === tid) { themeArm = null; if (!$('albumSheet').hidden) renderAlbum(); } }, 3000);
-      return;
-    }
-    themeArm = null; p.theme = tid; savePlayers();
-    closeSheet('albumSheet'); newGame(tid);
+    const p = me(); if (!p || busy) return;
+    if (!themeOpen(p, themeIndex(tid))) { toast('Tema ancora bloccato'); return; }
+    if (S && S.theme !== tid) save();
+    p.theme = tid; savePlayers();
+    const b = loadBoard(p.id, tid);
+    S = b ? normState(b, p) : newState(tid);
+    prev = null; armed = null; lastScore = S.score; resetNewBtn();
+    clearPreview(); closeSheet('albumSheet'); renderAll('drop'); noteActivity();
     toast('Tema: ' + theme().name);
   }
 
   /* ---------- Giocatori, profilo e classifica ---------- */
   function me() { return P.list.find(p => p.id === P.current) || null; }
-  function myBest() { const p = me(); return p ? p.best : 0; }
-  function ranked() {
+  function myBest() { const p = me(); return p && S ? recOf(p, S.theme) : 0; }
+  /* Righe della classifica: giocatori di questo telefono più quelli online, uniti per id. */
+  let ranksMode = null; /* null = generale, altrimenti l'id del tema */
+  function rowOf(p) {
+    const t = topOf(p);
+    return { id: p.id, name: p.name, icon: p.icon, lvl: level(p), stars: starsTotal(p), starsMap: Object.assign({}, p.stars || {}), top: t.e, best: p.best || 0, rec: Object.assign({}, p.rec || {}) };
+  }
+  function allRows() {
     const map = new Map();
-    if (onlineOk) online.forEach(e => map.set(e.id, e));
-    P.list.forEach(p => { if (p.best > 0) { const o = map.get(p.id); if (!o || p.best >= o.best) map.set(p.id, p); } });
-    return [...map.values()].sort((a, b) => b.best - a.best);
+    if (onlineOk) online.forEach(e => map.set(e.id, Object.assign({}, e, { rec: Object.assign({}, e.rec), starsMap: Object.assign({}, e.starsMap) })));
+    P.list.forEach(p => {
+      const r = rowOf(p), o = map.get(p.id);
+      if (!o) { if (r.lvl > 0 || r.best > 0) map.set(p.id, r); return; }
+      const m = r.lvl >= o.lvl ? r : o, other = m === r ? o : r;
+      Object.keys(other.rec).forEach(k => { m.rec[k] = Math.max(m.rec[k] || 0, other.rec[k]); });
+      Object.keys(other.starsMap).forEach(k => { m.starsMap[k] = Math.max(m.starsMap[k] || 0, other.starsMap[k]); });
+      m.stars = Object.values(m.starsMap).reduce((a, v) => a + v, 0); m.best = Math.max(m.best, other.best);
+      map.set(p.id, m);
+    });
+    return [...map.values()];
+  }
+  function ranked() {
+    return allRows().sort((a, b) => b.lvl - a.lvl || b.stars - a.stars || b.best - a.best || a.name.localeCompare(b.name));
+  }
+  function rankedTheme(tid) {
+    return allRows().filter(r => (r.rec[tid] || 0) > 0).sort((a, b) => b.rec[tid] - a.rec[tid] || a.name.localeCompare(b.name));
   }
   function rankOf(id) { const i = ranked().findIndex(p => p.id === id); return i < 0 ? 0 : i + 1; }
-  function rankRow(p, pos) {
-    const li = el('li', 'rank' + (p.id === P.current ? ' me' : ''));
-    const ps = el('span', 'ps');
-    ps.append(el('span', 'pb', meta(Math.min(p.bestL || 0, 11)).e), el('span', 'pv', fmt(p.best)));
-    const pn = el('span', 'pn', p.name);
-    pn.appendChild(el('small', 'plv', 'Liv. ' + (p.disc ? level(p) : (p.lvl || Math.ceil(Math.min(p.bestL || 0, 11) / 2)))));
-    li.append(el('span', 'pos', String(pos)), el('span', 'pi', p.icon), pn, ps);
+  function rankRow(r, pos, tid) {
+    const li = el('li', 'rank' + (r.id === P.current ? ' me' : ''));
+    const pn = el('span', 'pn', r.name), ps = el('span', 'ps');
+    const st = tid ? (r.starsMap[tid] || 0) : r.stars;
+    if (st) pn.appendChild(el('small', 'plv pst', '★' + st));
+    if (tid) ps.appendChild(el('span', 'pv', fmt(r.rec[tid])));
+    else ps.append(el('span', 'pb', r.top), el('span', 'pv', 'Liv. ' + r.lvl));
+    li.append(el('span', 'pos', String(pos)), el('span', 'pi', r.icon), pn, ps);
     return li;
   }
   function renderRanks() {
     const ol = $('ranks'); ol.replaceChildren();
+    if (ranksMode && !THEMES.some(t => t.id === ranksMode)) ranksMode = null;
+    $('ranksTitle').textContent = ranksMode ? `Scalate: ${THEMES[themeIndex(ranksMode)].name}` : 'Classifica';
+    $('ranksBack').hidden = !ranksMode;
+    if (ranksMode) {
+      $('ranksNote').textContent = 'Il punteggio migliore di una scalata in questo tema. ★ = scalate completate.';
+      const list = rankedTheme(ranksMode);
+      if (!list.length) { ol.appendChild(el('li', 'rank-empty', 'Nessuna scalata in questo tema, per ora.')); return; }
+      list.slice(0, 20).forEach((r, i) => ol.appendChild(rankRow(r, i + 1, ranksMode)));
+      const mi = list.findIndex(r => r.id === P.current);
+      if (mi >= 20) { ol.appendChild(el('li', 'rank-empty', '…')); ol.appendChild(rankRow(list[mi], mi + 1, ranksMode)); }
+      return;
+    }
     const pm = me(), si = pm && syncInfo[pm.id];
-    const meOnline = !!(pm && online.some(e => e.id === pm.id && e.best >= pm.best));
+    const meOnline = !!(pm && online.some(e => e.id === pm.id && e.best >= pm.best && e.lvl >= level(pm)));
     const myLine = !pm || pm.best <= 0 ? '' : meOnline ? ' Il tuo punteggio è online ✓'
       : si && !si.ok ? ` Il tuo punteggio non è ancora online: ${si.msg}.` : ' Invio del tuo punteggio…';
     $('ranksNote').textContent = !FIREBASE_URLS.length ? 'Punteggi di questo dispositivo.'
@@ -2484,7 +2588,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     $('profName').textContent = p.name;
     const lv = level(p), need = 2 * lv + 1 - discSum(p);
     $('profLv').replaceChildren(el('b', null, `Livello ${lv}`), document.createTextNode(` · per il prossimo scopri ${need} ${need === 1 ? 'gradino nuovo' : 'gradini nuovi'} della scala, in qualsiasi tema.`));
-    $('stBest').textContent = fmt(p.best);
+    $('stStars').textContent = String(starsTotal(p));
     $('stCoins').textContent = fmt(p.coins);
     $('stAlbum').textContent = `${albumTotal(p)}/${THEMES.length * PUZZLE_N}`;
     const lockedN = ICONS.filter(i => !p.icons.includes(i)).length, nPz = piecesToNextIcon(p);
@@ -2523,8 +2627,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (me()) save();
     P.current = id; savePlayers();
     const p = me();
-    const loaded = loadGame(id);
-    S = loaded ? normState(loaded, p) : newState();
+    const loaded = p ? loadBoard(id, myTheme(p)) : null;
+    S = loaded ? normState(loaded, p) : newState(p ? myTheme(p) : undefined);
     prev = null; armed = null; lastScore = S.score;
     clearPreview(); closeSetup(); resetNewBtn();
     renderAll('drop');
@@ -2651,7 +2755,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       return again && again !== id ? 'taken' : 'offline';
     } catch (e) { return 'offline'; }
   }
-  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null, key: p.key });
+  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null, key: p.key, rec: p.rec, stars: p.stars });
   /* Dopo l'accesso con Google: recupera i giocatori salvati nell'account. */
   async function restoreFromAccount() {
     if (!authUser || authUser.isAnonymous) return;
@@ -2666,13 +2770,19 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
         if (!v || typeof v.name !== 'string') continue;
         const loc = P.list.find(x => x.id === pid);
         const vk = typeof v.key === 'string' && v.key.length >= 16 && v.key.length <= 64 ? v.key : null;
-        if (loc) { loc.best = Math.max(loc.best, Number(v.best) || 0); loc.bestL = Math.max(loc.bestL || 0, Number(v.bestL) || 0); loc.orphan = false; if (vk) loc.key = vk; continue; }
+        if (loc) {
+          loc.best = Math.max(loc.best, Number(v.best) || 0); loc.bestL = Math.max(loc.bestL || 0, Number(v.bestL) || 0); loc.orphan = false; if (vk) loc.key = vk;
+          Object.entries(cleanMap(v.rec)).forEach(([k, n]) => { loc.rec[k] = Math.max(loc.rec[k] || 0, n); });
+          Object.entries(cleanMap(v.stars)).forEach(([k, n]) => { loc.stars[k] = Math.max(loc.stars[k] || 0, n); });
+          continue;
+        }
         const icons = Array.isArray(v.icons) ? v.icons.filter(i => ICONS.includes(i)) : undefined;
         P.list.push(normPlayer({
           id: pid, name: v.name.slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '🦊',
           best: Number(v.best) || 0, bestL: Number(v.bestL) || 0, theme: v.theme || 'seme', claimed: true,
           coins: Number(v.coins) || 0, inv: v.inv, icons,
-          album: v.album, disc: v.disc, daily: v.daily || undefined, streak: v.streak || undefined, key: vk || undefined
+          album: v.album, disc: v.disc, daily: v.daily || undefined, streak: v.streak || undefined, key: vk || undefined,
+          rec: cleanMap(v.rec), stars: cleanMap(v.stars)
         }));
         added++; firstId = firstId || pid;
       }
@@ -2736,7 +2846,12 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const bL = isFinite(bestL) && bestL >= 0 ? Math.min(Math.floor(bestL), 200) : 0;
     /* Se il livello non è arrivato (versioni vecchie dell'app), si ricava dal pezzo più alto: è almeno quello. */
     const lv = isFinite(lvl) && lvl > 0 ? Math.min(Math.floor(lvl), 1000) : Math.ceil(Math.min(bL, 11) / 2);
-    return { id, best, name: String(v.name || '?').slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '❔', bestL: bL, lvl: lv };
+    const rec = {}, starsMap = {}, okT = k => THEMES.some(t => t.id === k);
+    if (v.rec && typeof v.rec === 'object') Object.entries(v.rec).forEach(([k, n]) => { const x = Number(n); if (okT(k) && isFinite(x) && x > 0) rec[k] = x; });
+    if (v.stars && typeof v.stars === 'object') Object.entries(v.stars).forEach(([k, n]) => { const x = Math.floor(Number(n)); if (okT(k) && isFinite(x) && x > 0) starsMap[k] = x; });
+    if (!Object.keys(rec).length) rec.seme = best;
+    const top = typeof v.top === 'string' && v.top.length <= 16 && v.top ? v.top : THEMES[0].pieces[Math.min(bL, TOP)][0];
+    return { id, best, name: String(v.name || '?').slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '❔', bestL: bL, lvl: lv, rec, starsMap, stars: Object.values(starsMap).reduce((a, x) => a + x, 0), top };
   }
   async function pullOnline() {
     if (!FIREBASE_URLS.length) return;
@@ -2753,6 +2868,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   /* Stato dell'invio online per ogni giocatore di questo dispositivo, mostrato in Classifica. */
   const syncInfo = {};
+  const cleanMap = m => { const o = {}; THEMES.forEach(t => { const v = Number(m && m[t.id]); if (isFinite(v) && v > 0) o[t.id] = v; }); return o; };
+  const scoreBody = p => JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p), stars: cleanMap(p.stars), top: topOf(p).e, rec: cleanMap(p.rec) });
   const verified = new Set();
   function setSync(p, ok, msg) { syncInfo[p.id] = { ok, msg }; if (p.id === P.current) renderRanks(); }
   /* Invia punteggio e profilo di un giocatore.
@@ -2783,14 +2900,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const cur = await r.json();
         if (cur && Number(cur.best) > p.best) p.best = Number(cur.best);
-        const want = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p) });
-        const have = cur ? JSON.stringify({ name: cur.name, icon: cur.icon, best: cur.best, bestL: cur.bestL || 0, lvl: cur.lvl || 0 }) : '';
+        const want = scoreBody(p);
+        const have = cur ? JSON.stringify({ name: cur.name, icon: cur.icon, best: cur.best, bestL: cur.bestL || 0, lvl: cur.lvl || 0, stars: cleanMap(cur.stars), top: cur.top || '', rec: cleanMap(cur.rec) }) : '';
         p.synced = have === want ? want : '';
       } catch (e) { setSync(p, false, 'collegamento non riuscito, riprovo'); return false; }
       savePlayers();
       verified.add(vk);
     }
-    const body = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p) });
+    const body = scoreBody(p);
     const prof = JSON.stringify(profileOf(p));
     if (p.best <= 0 && p.synced !== body) p.synced = body; /* niente da mostrare in classifica finché non fa punti */
     let sent = false;
@@ -2890,10 +3007,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     go();
   };
   $('overUndo').addEventListener('click', undo);
-  $('overNew').addEventListener('click', () => newGame());
+  $('overNew').addEventListener('click', () => restartClimb(!S.done));
   $('newBtn').addEventListener('click', askNew);
-  $('albumBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } selPiece = null; themeArm = null; renderAlbum(); openSheet('albumSheet'); });
-  $('ranksBtn').addEventListener('click', () => { renderRanks(); openSheet('ranksSheet'); pullOnline(); });
+  $('albumBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } selPiece = null; renderAlbum(); openSheet('albumSheet'); });
+  $('ranksBtn').addEventListener('click', () => { ranksMode = null; renderRanks(); openSheet('ranksSheet'); pullOnline(); });
+  $('ranksBack').addEventListener('click', () => { ranksMode = null; renderRanks(); });
   $('missBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderMissions(); openSheet('missSheet'); });
   $('dayChestBtn').addEventListener('click', openDailyChest);
   $('infoBtn').addEventListener('click', () => openSheet('infoSheet'));
@@ -2934,17 +3052,26 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     try { const p = JSON.parse(localStorage.getItem(LS_PLAYERS)); if (p && Array.isArray(p.list)) return p; } catch (e) {}
     return { list: [], current: null };
   }
-  function save() { if (!P.current || !S) return; try { localStorage.setItem(LS_GAME + '.' + P.current, JSON.stringify(S)); } catch (e) {} }
+  const boardKey = (pid, tid) => `${LS_BOARD}.${pid}.${tid}`;
+  function save() { if (!P.current || !S) return; try { localStorage.setItem(boardKey(P.current, S.theme), JSON.stringify(S)); } catch (e) {} }
   const validGame = s => !!(s && Array.isArray(s.grid) && s.grid.length === SIZE && typeof s.cur === 'number');
-  function loadGame(id) {
+  /* Il tabellone di un tema. Il vecchio salvataggio unico (una partita sola per giocatore) diventa il tabellone del tema in cui era. */
+  function loadBoard(pid, tid) {
     try {
-      const s = JSON.parse(localStorage.getItem(LS_GAME + '.' + id));
+      const s = JSON.parse(localStorage.getItem(boardKey(pid, tid)));
       if (validGame(s)) return s;
-      const old = JSON.parse(localStorage.getItem(LS_GAME));
-      if (validGame(old)) { localStorage.removeItem(LS_GAME); return old; }
+      const old = JSON.parse(localStorage.getItem(LS_GAME + '.' + pid)) || JSON.parse(localStorage.getItem(LS_GAME));
+      if (validGame(old)) {
+        const ot = THEMES.some(t => t.id === old.theme) ? old.theme : 'seme';
+        old.theme = ot;
+        localStorage.setItem(boardKey(pid, ot), JSON.stringify(old));
+        localStorage.removeItem(LS_GAME + '.' + pid); localStorage.removeItem(LS_GAME);
+        if (ot === tid) return old;
+      }
     } catch (e) {}
     return null;
   }
+  const myTheme = p => (p && p.theme && themeOpen(p, themeIndex(p.theme))) ? p.theme : 'seme';
   let resizeT;
   window.addEventListener('resize', () => {
     sizeCells(); sizeParticles();
@@ -2959,7 +3086,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     P.list.forEach(p => { normPlayer(p); ensureDaily(p); });
     const p = me();
     if (data && validGame(data.S) && p) { S = normState(data.S, p); prev = data.prev || null; }
-    else { const g = p && loadGame(P.current); S = g ? normState(g, p) : newState(); }
+    else { const g = p && loadBoard(P.current, myTheme(p)); S = g ? normState(g, p) : newState(p ? myTheme(p) : undefined); }
     savePlayers();
     lastScore = S.score;
     drawStars(); sizeParticles();
