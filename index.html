@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107194926">
+<meta name="app-version" content="20261107224303">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -2545,7 +2545,16 @@ body.dev-on .dev { display: flex; }
     const p = me(), full = S.grid.every(v => v !== EMPTY) && !S.grid.includes(CHEST), was = S.over;
     const canHammer = p && unlocked(p, 'hammer') && (p.inv.hammer > 0 || p.coins >= priceOf('hammer'));
     const canMagnet = p && unlocked(p, 'magnet') && magnetPlan(S.grid).steps.length > 0 && (p.inv.magnet > 0 || p.coins >= priceOf('magnet'));
-    S.over = full && !canHammer && !canMagnet;
+    /* abilità dei pezzi che liberano spazio o fondono anche a tabellone pieno */
+    const canHost = S.grid.some((v, i) => HOST[v] && (S.held[i] || []).length < HOST[v]);
+    const mets = S.grid.map((v, i) => (v === 7 && S.spent[i] !== 7) ? i : -1).filter(i => i >= 0);
+    const canBarter = mets.length > 0 && S.cur !== undefined && S.cur !== null && S.grid.some((v, t) => {
+      if (v < 0 || v === S.cur || !mets.some(m => m !== t)) return false;
+      const g = S.grid.slice(); g[t] = EMPTY;
+      const L = S.cur === JOLLY ? jollyLevel(g, t) : S.cur;
+      return simulate(g, t, L).steps.length > 0;
+    });
+    S.over = full && !canHammer && !canMagnet && !canHost && !canBarter;
     if (S.over && !was) { pushOnline(true); shake(2); buzz([60, 40, 60]); sfx('over'); }
     return full;
   }
