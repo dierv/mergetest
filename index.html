@@ -535,7 +535,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   .board-wrap.shake1, .board-wrap.shake2 { animation: none; }
 }
 
-@keyframes drop { 0% { transform: translateY(-40%) scale(.72, 1.22); opacity: 0; } 55% { transform: translateY(0) scale(1.15, .84); opacity: 1; } 75% { transform: scale(.95, 1.06); } 100% { transform: none; opacity: 1; } }
+@keyframes drop { 0% { transform: translateY(-40%) scale(.72, 1.22); } 55% { transform: translateY(0) scale(1.15, .84); } 75% { transform: scale(.95, 1.06); } 100% { transform: none; } }
 @keyframes pop { 0% { transform: scale(.2) rotate(-25deg); } 45% { transform: scale(1.32) rotate(6deg); } 65% { transform: scale(.9) rotate(-3deg); } 82% { transform: scale(1.06); } 100% { transform: none; } }
 @keyframes flash { from { opacity: .9; } to { opacity: 0; } }
 @keyframes jelly { 0% { transform: scale(1); } 30% { transform: scale(1.18, .82); } 55% { transform: scale(.88, 1.12); } 78% { transform: scale(1.06, .95); } 100% { transform: scale(1); } }
@@ -785,6 +785,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <div class="opt-row">
       <span id="motionLab">Animazioni ed effetti</span>
       <button id="motionBtn" class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="motionLab"><span class="knob"></span></button>
+    </div>
+    <div class="opt-row">
+      <span>Qualcosa di strano? Copia le ultime mosse e incollale nella chat.</span>
+      <button id="logBtn" class="btn" type="button">Copia</button>
     </div>
     <div class="sheet-actions">
       <button type="button" id="infoWho" class="btn">Cambia giocatore</button>
@@ -1117,11 +1121,18 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (m.cyc) d.appendChild(el('span', 'cy', stars(m.cyc)));
     return d;
   }
+  const SETTLE = /^(drop|pop|jelly)$/;
+  function settle(pc) {
+    pc.addEventListener('animationend', e => {
+      if (e.target === pc && SETTLE.test(e.animationName)) { pc.classList.remove('drop', 'pop', 'jelly'); pc.style.animationDelay = ''; }
+    });
+    return pc;
+  }
   function renderCell(i, anim, delay) {
     const c = cells[i];
     c.querySelectorAll('.pc').forEach(x => x.remove());
     const v = S.grid[i], r = Math.floor(i / N) + 1, col = i % N + 1;
-    if (v >= 0) { c.appendChild(pieceEl(v, anim, delay)); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${nameOf(v)}`); }
+    if (v >= 0) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
   }
   function renderHand(anim) {
@@ -1383,6 +1394,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (musicOn) startMusic();
   }
   ['pointerup', 'touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, unlockAudio, true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && S && !busy) setTimeout(healBoard, 400);
+  });
   document.addEventListener('visibilitychange', () => {
     if (!ac) return;
     if (document.visibilityState === 'hidden') ac.suspend().catch(() => {});
@@ -1795,6 +1809,65 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
 
   /* ---------- Mosse ---------- */
   function econ() { const p = me(); return p ? { coins: p.coins, inv: Object.assign({}, p.inv) } : null; }
+  /* Caselle in cui quello che si vede non corrisponde al tabellone vero (pezzo invisibile, mancante o di troppo). */
+  function boardIssues() {
+    const out = [];
+    for (let i = 0; i < SIZE; i++) {
+      const pcs = [...cells[i].querySelectorAll('.pc:not(.ghost)')], has = S.grid[i] >= 0;
+      if (!has) { if (pcs.length) out.push(i); continue; }
+      const cs = pcs.length === 1 ? getComputedStyle(pcs[0]) : null;
+      if (!cs || cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) < .5) out.push(i);
+    }
+    return out;
+  }
+  function healBoard() {
+    if (!S || busy) return false;
+    const bad = boardIssues();
+    if (!bad.length) return false;
+    logMove({ k: 'fix', cells: bad, b: S.grid.slice() });
+    bad.forEach(i => renderCell(i, 'pop'));
+    return true;
+  }
+  /* Registro delle ultime mosse, da copiare in Info se succede qualcosa di strano. */
+  const LS_LOG = 'semeStelle.log.v1';
+  function logMove(m) {
+    try {
+      const a = JSON.parse(localStorage.getItem(LS_LOG) || '[]');
+      a.push(Object.assign({ t: Date.now(), th: S.theme }, m));
+      localStorage.setItem(LS_LOG, JSON.stringify(a.slice(-15)));
+    } catch (e) {}
+  }
+  function logText() {
+    let a = [];
+    try { a = JSON.parse(localStorage.getItem(LS_LOG) || '[]'); } catch (e) {}
+    const em = v => v >= 0 ? meta(v).e : '⬜';
+    const board = g => Array.from({ length: N }, (_, r) => g.slice(r * N, r * N + N).map(em).join('')).join('\n');
+    const pos = i => `riga ${Math.floor(i / N) + 1} colonna ${i % N + 1}`;
+    const out = [`Dal seme alle stelle — ultime ${a.length} mosse`];
+    a.forEach((m, k) => {
+      const h = new Date(m.t).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const what = m.k === 'fix' ? `⚠️ pezzi non visibili, ridisegnati: ${m.cells.map(pos).join('; ')}`
+        : m.k === 'magnet' ? '🧲 calamita'
+        : m.k === 'hammer' ? `🔨 martello su ${pos(m.i)}`
+        : `${m.k === 'rainbow' ? '🌈 arcobaleno' : em(m.v)} in ${pos(m.i)}`;
+      out.push('', `#${k + 1} ${h} · ${what}`);
+      if (m.b) out.push('prima:', board(m.b));
+      if (m.a) out.push('dopo:', board(m.a));
+    });
+    return out.join('\n');
+  }
+  async function copyLog() {
+    const txt = logText();
+    let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {}
+    if (!ok) {
+      const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;'; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+    }
+    toast(ok ? 'Copiato: incollalo nella chat' : 'Non riesco a copiare su questo dispositivo');
+  }
   function saveUndo() { prev = { S: JSON.parse(JSON.stringify(S)), econ: econ() }; }
   async function flyTo(froms, to) {
     const wr = wrap.getBoundingClientRect(), t = center(to), list = [];
@@ -1821,6 +1894,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const p = me();
     if (!p) { openSetup(); return; }
     noteActivity();
+    if (healBoard()) { toast('Alcuni pezzi non si vedevano: ora sono al loro posto. Riprova.'); return; }
+    const before = S.grid.slice();
     if (armed === 'hammer') {
       if (S.grid[idx] < 0) { nudge(idx); toast('Tocca un pezzo da togliere'); return; }
       saveUndo(); busy = true; clearPreview();
@@ -1830,6 +1905,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       await sleep(280);
       S.grid[idx] = EMPTY; renderCell(idx);
       S.moves++;
+      logMove({ k: 'hammer', i: idx, b: before, a: S.grid.slice() });
       busy = false; afterMove(); return;
     }
     if (S.grid[idx] >= 0) { nudge(idx); return; }
@@ -1876,6 +1952,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       await sleep(combo < sim.steps.length ? 330 : 260);
     }
     S.moves++;
+    logMove({ k: rainbow ? 'rainbow' : 'piece', i: idx, v: L, b: before, a: S.grid.slice() });
     if (!rainbow) S.cur = draw(S);
     busy = false; afterMove(!rainbow);
   }
@@ -1889,6 +1966,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     return full;
   }
   function afterMove(newNext) {
+    setTimeout(healBoard, 1200);
     const pl = me();
     if (pl && (S.score > pl.best || S.maxL > (pl.bestL || 0))) {
       if (S.score > pl.best) pl.best = S.score;
@@ -1971,6 +2049,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const p = me();
     const plan = magnetPlan(S.grid);
     if (!plan.steps.length) { toast('Servono almeno 3 pezzi uguali sul tabellone'); nudgeBonus('magnet'); return; }
+    if (healBoard()) { toast('Alcuni pezzi non si vedevano: ora sono al loro posto. Riprova.'); return; }
+    const before = S.grid.slice();
     saveUndo(); busy = true; clearPreview(); armed = null;
     p.inv.magnet--; renderBonus(); track('bonus', 1);
     comboBanner('Calamita!'); sfx('swap'); sfx('magic'); buzz([15, 30, 15]);
@@ -2007,6 +2087,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       await sleep(320);
     }
     S.moves++;
+    logMove({ k: 'magnet', b: before, a: S.grid.slice() });
     busy = false; afterMove(false);
   }
   function nudgeBonus(k) { attn(k); sfx('nope'); }
@@ -2729,6 +2810,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   $('coinBox').addEventListener('click', () => { if (me()) openShop(); else openSetup(); });
   $('who').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderProfile(); openSheet('profSheet'); });
   $('undoBtn').addEventListener('click', undo);
+  $('logBtn').addEventListener('click', copyLog);
   $('overUndo').addEventListener('click', undo);
   $('overNew').addEventListener('click', () => newGame());
   $('newBtn').addEventListener('click', askNew);
