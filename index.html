@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107124334">
+<meta name="app-version" content="20261107130029">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -772,7 +772,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     <ul class="rules">
       <li>Tocca una casella vuota per appoggiare il pezzo che vedi in alto.</li>
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
-      <li><b>Solo a tris</b>: i pezzi si fondono a gruppi di 3. Con 6 pezzi uguali insieme ne nascono 2 (Doppio), con 9 ne nascono 3 (Triplo). Quelli in più restano dove sono: con 4 pezzi, 1 nuovo e 1 vecchio.</li>
+      <li><b>Quanti ne nascono</b>: 3 pezzi → 1 nuovo · 4 → 1 nuovo e 1 resta · 5 → 2 nuovi (Doppio) · 6 → 2 e 1 resta · 7 → 2 e 2 restano · 8 → 3 (Triplo) · 9 → 3 e 1 resta · 10 → 4, e così via. Tutto il gruppo si raccoglie dove hai appoggiato: i pezzi che avanzano ricompaiono lì accanto, uguali a prima.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
       <li><b>La scalata</b>: ogni tema ha il suo tabellone, sempre salvato; cambi tema quando vuoi dall'Album e ritrovi tutto com'era. La scalata parte dal tabellone vuoto e finisce in cima alla scala, al 12º gradino: lì il tema prende la sua ★ (basta arrivarci una volta), tu prendi 2.000 monete e riparti dal germoglio. Il record di ogni tema resta.</li>
       <li><b>Tabellone pieno</b>: se non puoi usare né il martello né la calamita, la scalata finisce. I punti tornano a zero e riparti con il tabellone vuoto dalle tessere a cui eri arrivato. Record, album, livello, monete e poteri restano.</li>
@@ -1056,20 +1056,25 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     return q;
   }
-  /* Si fonde solo a tris: n pezzi uguali collegati ne fanno floor(n/3) superiori, i pezzi in più restano.
-     Si usano i pezzi più vicini alla casella toccata; il primo nuovo nasce lì, gli altri nelle caselle del gruppo più vicine. */
+  /* Quanti pezzi nuovi nascono da n pezzi uguali collegati (tabella decisa dall'utente):
+     3→1, 4→1 (+1 resta), 5→2, 6→2 (+1), 7→2 (+2), 8→3, 9→3 (+1), 10→4, 11→4 (+1), 12→4 (+2), 13→5…
+     In pratica un pezzo nuovo ogni 2 pezzi e mezzo; quelli che avanzano restano dove sono. */
+  const makeOf = n => Math.floor(n * 2 / 5);
+  const usedOf = make => Math.ceil(make * 5 / 2);
+  /* Tutto il gruppo si raccoglie nella casella toccata: il primo pezzo nuovo nasce lì, gli altri nelle caselle del gruppo
+     più vicine; i pezzi che avanzano ricompaiono subito accanto, vecchi come prima; il resto del gruppo si libera. */
   function simulate(g0, idx, L) {
     const g = g0.slice(); g[idx] = L;
     const steps = []; let pts = 0;
     for (;;) {
       const grp = bfsGroup(g, idx, L);
       if (grp.length < 3) break;
-      const make = Math.floor(grp.length / 3), used = grp.slice(0, make * 3);
-      const from = used.slice(1), keep = used.slice(1, make);
+      const n = grp.length, make = makeOf(n), left = n - usedOf(make);
+      const from = grp.slice(1), keep = grp.slice(1, make), stay = grp.slice(make, make + left);
       from.forEach(j => { g[j] = EMPTY; });
-      g[idx] = L + 1; keep.forEach(j => { g[j] = L + 1; });
+      g[idx] = L + 1; keep.forEach(j => { g[j] = L + 1; }); stay.forEach(j => { g[j] = L; });
       const gain = Math.round(value(L + 1) * make * (steps.length + 1));
-      steps.push({ L, from, keep, make, gain }); pts += gain;
+      steps.push({ L, from, keep, stay, make, gain }); pts += gain;
       L++;
     }
     return { g, steps, pts, final: L };
@@ -1708,7 +1713,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   let chestQueue = 0, chestOpen = false, chestLabel = null;
   /* Quando i punti della scalata superano una soglia, un forziere compare sul tabellone vicino all'ultima fusione
      (al massimo uno per mossa). Si apre toccandolo, e la casella si libera. Se non c'è posto, arriva appena si libera una casella. */
-  let lastIdx = -1;
+  let lastIdx = -1, lastFreed = [];
   function checkChests() {
     if (!me()) return;
     let n = 0;
@@ -1717,7 +1722,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (S.chestDue > 0 && placeChest()) S.chestDue--;
   }
   function placeChest() {
-    const empties = S.grid.map((v, i) => v === EMPTY ? i : -1).filter(i => i >= 0);
+    /* prima scelta: una casella appena liberata dalla fusione (dopo una fusione ce n'è sempre almeno una) */
+    const freed = lastFreed.filter(i => S.grid[i] === EMPTY);
+    const empties = freed.length ? freed : S.grid.map((v, i) => v === EMPTY ? i : -1).filter(i => i >= 0);
     if (!empties.length) return false;
     const d = i => lastIdx < 0 ? Math.random() : Math.hypot(Math.floor(i / N) - Math.floor(lastIdx / N), i % N - lastIdx % N) + Math.random() * .1;
     const at = empties.sort((a, b) => d(a) - d(b))[0];
@@ -1783,7 +1790,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   /* ---------- Missioni del giorno ---------- */
   const MISSIONS = {
     merge: { ic: '🔗', kind: 'sum', tiers: [12, 25, 45], text: n => `Fai ${n} fusioni` },
-    double: { ic: '✌️', kind: 'sum', tiers: [1, 1, 2], text: n => n === 1 ? 'Fai un Doppio (6 pezzi uguali insieme)' : `Fai ${n} Doppi (6 pezzi uguali insieme)` },
+    double: { ic: '✌️', kind: 'sum', tiers: [1, 2, 4], text: n => n === 1 ? 'Fai un Doppio (5 pezzi uguali insieme)' : `Fai ${n} Doppi (5 pezzi uguali insieme)` },
     combo: { ic: '⚡', kind: 'max', tiers: [2, 2, 3], text: n => `Fai una Combo ×${n} (fusioni a catena)` },
     reach: { ic: '🪜', kind: 'max', tiers: [3, 4, 6], text: n => `Crea ${meta(n).e} ${meta(n).n} con una fusione` },
     score: { ic: '🎯', kind: 'sum', tiers: [800, 2000, 4500], text: n => `Guadagna ${fmt(n)} punti con le fusioni` },
@@ -2009,7 +2016,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     if (S.grid[idx] >= 0) { nudge(idx); return; }
     const rainbow = armed === 'rainbow';
-    saveUndo(); busy = true; clearPreview(); lastIdx = idx;
+    saveUndo(); busy = true; clearPreview(); lastIdx = idx; lastFreed = [];
+    const freed = new Set();
     if (rainbow) { p.inv.rainbow--; armed = null; renderBonus(); track('bonus', 1); }
     const L = rainbow ? jollyLevel(S.grid, idx) : S.cur;
     const sim = simulate(S.grid, idx, L);
@@ -2029,11 +2037,13 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       });
       await sleep(240);
       await flyTo(st.from, idx);
-      st.from.forEach(j => { S.grid[j] = EMPTY; renderCell(j); });
+      st.from.forEach(j => { S.grid[j] = EMPTY; renderCell(j); freed.add(j); });
       const lvl = st.L + 1;
       S.grid[idx] = lvl; renderCell(idx, 'pop');
       burst(idx, lvl, combo); floatScore(idx, st.gain, combo); sfx('merge', lvl);
-      st.keep.forEach(j => { S.grid[j] = lvl; renderCell(j, 'pop'); burst(j, lvl, 1); });
+      st.keep.forEach(j => { S.grid[j] = lvl; renderCell(j, 'pop'); burst(j, lvl, 1); freed.delete(j); });
+      (st.stay || []).forEach(j => { S.grid[j] = st.L; renderCell(j, 'drop'); freed.delete(j); });
+      lastFreed = [...freed];
       const words = [];
       if (combo > 1) words.push(`Combo ×${combo}`);
       if (st.make > 1) words.push(st.make === 2 ? 'Doppio' : st.make === 3 ? 'Triplo' : `×${st.make}`);
@@ -2154,8 +2164,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     clearPreview(); renderBonus(); sfx('tap');
     if (armed) toast(k === 'hammer' ? 'Tocca il pezzo da togliere' : 'Tocca una casella vuota per l\'arcobaleno');
   }
-  /* Calamita: per ogni tipo di pezzo con almeno 3 copie sul tabellone, le unisce a tris con la regola normale
-     (n pezzi → floor(n/3) superiori, i pezzi in più restano), partendo dai pezzi più piccoli e ripetendo a catena.
+  /* Calamita: per ogni tipo di pezzo con almeno 3 copie sul tabellone, le unisce con la stessa tabella delle fusioni
+     (i pezzi che avanzano restano), partendo dai pezzi più piccoli e ripetendo a catena.
      Si usano i pezzi più vicini al centro del gruppo; i nuovi nascono nelle caselle più centrali. */
   function magnetPlan(g0) {
     const g = g0.slice(), steps = [];
@@ -2164,13 +2174,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       g.forEach((v, i) => { if (v >= 0) (byL[v] = byL[v] || []).push(i); });
       const L = Object.keys(byL).map(Number).sort((a, b) => a - b).find(l => byL[l].length >= 3);
       if (L === undefined) break;
-      const cellsL = byL[L], n = cellsL.length, make = Math.floor(n / 3);
+      const cellsL = byL[L], n = cellsL.length, make = makeOf(n);
       const cr = cellsL.reduce((a, i) => a + Math.floor(i / N), 0) / n, cc = cellsL.reduce((a, i) => a + i % N, 0) / n;
       const dist = i => Math.hypot(Math.floor(i / N) - cr, i % N - cc);
-      const used = cellsL.slice().sort((a, b) => dist(a) - dist(b)).slice(0, make * 3), targets = used.slice(0, make);
-      used.forEach(i => { g[i] = EMPTY; });
-      targets.forEach(i => { g[i] = L + 1; });
-      steps.push({ L, cells: used, targets, make, n: used.length, gain: Math.round(value(L + 1) * make) });
+      const sorted = cellsL.slice().sort((a, b) => dist(a) - dist(b)), left = n - usedOf(make);
+      const targets = sorted.slice(0, make), stay = sorted.slice(make, make + left);
+      cellsL.forEach(i => { g[i] = EMPTY; });
+      targets.forEach(i => { g[i] = L + 1; }); stay.forEach(i => { g[i] = L; });
+      steps.push({ L, cells: cellsL, targets, stay, make, n, gain: Math.round(value(L + 1) * make) });
     }
     return { g, steps };
   }
@@ -2180,7 +2191,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!plan.steps.length) { toast('Servono almeno 3 pezzi uguali sul tabellone'); nudgeBonus('magnet'); return; }
     if (healBoard()) { toast('Alcuni pezzi non si vedevano: ora sono al loro posto. Riprova.'); return; }
     const before = S.grid.slice();
-    saveUndo(); busy = true; clearPreview(); armed = null;
+    saveUndo(); busy = true; clearPreview(); armed = null; lastFreed = [];
+    const freed = new Set();
     p.inv.magnet--; renderBonus(); track('bonus', 1);
     comboBanner('Calamita!'); sfx('swap'); sfx('magic'); buzz([15, 30, 15]);
     let k = 0;
@@ -2200,9 +2212,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
         groups.get(best).push(j);
       });
       await Promise.all([...groups].map(([t, fr]) => flyTo(fr, t)));
-      st.cells.forEach(j => { S.grid[j] = EMPTY; renderCell(j); });
+      st.cells.forEach(j => { S.grid[j] = EMPTY; renderCell(j); freed.add(j); });
       const lvl = st.L + 1; lastIdx = st.targets[0];
-      st.targets.forEach(t => { S.grid[t] = lvl; renderCell(t, 'pop'); burst(t, lvl, 1); });
+      st.targets.forEach(t => { S.grid[t] = lvl; renderCell(t, 'pop'); burst(t, lvl, 1); freed.delete(t); });
+      (st.stay || []).forEach(j => { S.grid[j] = st.L; renderCell(j, 'drop'); freed.delete(j); });
+      lastFreed = [...freed];
       floatScore(st.targets[0], st.gain, k);
       sfx('merge', lvl); buzz(18);
       S.score += st.gain; renderScore();
