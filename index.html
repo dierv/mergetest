@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107224303">
+<meta name="app-version" content="20261107225729">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -894,6 +894,7 @@ body.dev-on .dev { display: flex; }
       <button id="logBtn" class="btn" type="button">Copia</button>
     </div>
     <p id="verLine" class="hint-text"></p>
+    <p id="syncLine" class="hint-text"></p>
     <div class="sheet-actions">
       <button type="button" id="tutBtn" class="btn">Rivedi il tutorial</button>
       <button type="button" id="infoWho" class="btn">Cambia giocatore</button>
@@ -1234,7 +1235,7 @@ body.dev-on .dev { display: flex; }
   function nextPiece(st) { return (st.queue && st.queue.length) ? st.queue.shift() : draw(st); }
   /* Scorta: la 1ª casella è sempre aperta; la 2ª e la 3ª si comprano (S.extra). */
   const slotOpen = (i, st) => { st = st || S; return i === 0 || (st.extra || 0) >= i; };
-  function newState(tid, keepMax) {
+  function newState(tid, keepMax, fresh) {
     const g = Array(SIZE).fill(EMPTY), F = floorOf(keepMax || 0);
     let placed = 0, guard = 0;
     while (placed < 7 && guard++ < 300) {
@@ -1248,7 +1249,7 @@ body.dev-on .dev { display: flex; }
     const maxL = Math.max(keepMax || 0, ...g), p = me();
     let theme = tid || (p && p.theme) || 'seme';
     if (p && !themeOpen(p, themeIndex(theme))) theme = 'seme';
-    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, done: false, moves: 0, recordAtStart: recOf(p, theme), theme, chests: 0, chestV: 2, chestDue: 0, extra: 0, floor: 0, recent: [], queue: [], held: {}, spent: {} };
+    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, done: false, moves: 0, recordAtStart: recOf(p, theme), theme, chests: 0, chestV: 2, chestDue: 0, extra: 0, floor: 0, recent: [], queue: [], held: {}, spent: {}, fresh: !!fresh };
     st.cur = draw(st);
     return st;
   }
@@ -1789,7 +1790,7 @@ body.dev-on .dev { display: flex; }
     const sim = simulate(S.grid, i, L);
     sim.steps.forEach(st => st.from.forEach(j => cells[j].classList.add('hl')));
     c.classList.add('aim');
-    c.appendChild(pieceEl(sim.final, 'ghost' + (sim.steps.length ? ' ghost-merge' : '')));
+    c.appendChild(pieceEl((armed === 'rainbow' || S.cur === JOLLY) ? JOLLY : S.cur, 'ghost' + (sim.steps.length ? ' ghost-merge' : '')));
   }
   function clearHint() { boardEl.querySelectorAll('.hint, .hint-pc').forEach(x => x.classList.remove('hint', 'hint-pc')); }
   function noteActivity() {
@@ -2572,6 +2573,7 @@ body.dev-on .dev { display: flex; }
   }
   function afterMove(newNext) {
     setTimeout(healBoard, 1200);
+    if (S && S.fresh) delete S.fresh;
     ensureLookahead(); checkUnlocks();
     const made = createdNow.slice(); createdNow = [];
     if (made.length) coach.pieces(made);
@@ -3047,7 +3049,7 @@ body.dev-on .dev { display: flex; }
     if (S && S.theme !== tid) save();
     p.theme = tid; savePlayers();
     const b = loadBoard(p.id, tid);
-    S = b ? normState(b, p) : newState(tid);
+    S = b ? normState(b, p) : newState(tid, 0, true);
     prev = null; armed = null; lastScore = S.score; resetNewBtn();
     clearPreview(); closeSheet('albumSheet'); renderAll('drop'); noteActivity();
     toast('Tema: ' + theme().name);
@@ -3202,7 +3204,7 @@ body.dev-on .dev { display: flex; }
     P.current = id; savePlayers();
     const p = me();
     const loaded = p ? loadBoard(id, myTheme(p)) : null;
-    S = loaded ? normState(loaded, p) : newState(p ? myTheme(p) : undefined);
+    S = loaded ? normState(loaded, p) : newState(p ? myTheme(p) : undefined, 0, true);
     prev = null; armed = null; lastScore = S.score;
     clearPreview(); closeSetup(); resetNewBtn();
     renderAll('drop');
@@ -3330,7 +3332,25 @@ body.dev-on .dev { display: flex; }
       return again && again !== id ? 'taken' : 'offline';
     } catch (e) { return 'offline'; }
   }
-  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null, key: p.key, rec: p.rec, stars: p.stars, unl: p.unl, tut: p.tut });
+  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null, key: p.key, rec: p.rec, stars: p.stars, unl: p.unl, tut: p.tut, updated: p.updated || 0, boards: boardsOf(p.id) });
+  /* Campi del profilo che seguono "vince il più recente" (record e stelle restano al massimo dei due). */
+  const NEWEST_FIELDS = ['icon', 'theme', 'coins', 'inv', 'icons', 'album', 'disc', 'daily', 'streak', 'unl', 'tut'];
+  let lastBackupAt = 0, lastBackupErr = '';
+  try { lastBackupAt = Number(localStorage.getItem('semeStelle.backup.v1')) || 0; } catch (e) {}
+  function noteBackup(ok, err) {
+    if (ok) { lastBackupAt = Date.now(); lastBackupErr = ''; try { localStorage.setItem('semeStelle.backup.v1', String(lastBackupAt)); } catch (e) {} }
+    else lastBackupErr = err || 'errore';
+    renderSyncLine();
+  }
+  function renderSyncLine() {
+    const el2 = $('syncLine'); if (!el2) return;
+    const linked = !!(authUser && !authUser.isAnonymous);
+    const when = lastBackupAt ? new Date(lastBackupAt).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'mai';
+    let txt = `Salvataggio online (profilo e tabelloni): ${when}.`;
+    if (lastBackupErr) txt += ` Ultimo tentativo non riuscito: ${lastBackupErr}.`;
+    txt += linked ? ' Collegato a Google: su un altro telefono vince il salvataggio più recente.' : ' Collega Google (sotto) per ritrovare tutto su un altro telefono.';
+    el2.textContent = txt;
+  }
   /* Dopo l'accesso con Google: recupera i giocatori salvati nell'account. */
   async function restoreFromAccount() {
     if (!authUser || authUser.isAnonymous) return;
@@ -3340,7 +3360,8 @@ body.dev-on .dev { display: flex; }
       const r = await fetch(url, { cache: 'no-store' });
       if (!r.ok) return;
       const data = (await r.json()) || {};
-      let added = 0, firstId = null;
+      let added = 0, changed = 0, firstId = null;
+      restoring = true;
       for (const [pid, v] of Object.entries(data)) {
         if (!v || typeof v.name !== 'string') continue;
         const loc = P.list.find(x => x.id === pid);
@@ -3349,6 +3370,13 @@ body.dev-on .dev { display: flex; }
           loc.best = Math.max(loc.best, Number(v.best) || 0); loc.bestL = Math.max(loc.bestL || 0, Number(v.bestL) || 0); loc.orphan = false; if (vk) loc.key = vk;
           Object.entries(cleanMap(v.rec)).forEach(([k, n]) => { loc.rec[k] = Math.max(loc.rec[k] || 0, n); });
           Object.entries(cleanMap(v.stars)).forEach(([k, n]) => { loc.stars[k] = Math.max(loc.stars[k] || 0, n); });
+          const cu = Number(v.updated) || 0, lu = Number(loc.updated) || 0;
+          if (lu && cu > lu) {
+            /* il cloud è più recente di questo telefono: monete, poteri, album, missioni e tutorial vengono da lì */
+            NEWEST_FIELDS.forEach(k => { if (v[k] !== undefined && v[k] !== null) loc[k] = v[k]; });
+            Object.assign(loc, normPlayer(loc)); loc.updated = cu; changed++;
+          } else if (!lu) loc.updated = Date.now(); /* profilo mai datato (versione vecchia): tiene il telefono */
+          if (restoreBoards(pid, v.boards)) changed++;
           continue;
         }
         const icons = Array.isArray(v.icons) ? v.icons.filter(i => ICONS.includes(i)) : undefined;
@@ -3359,17 +3387,41 @@ body.dev-on .dev { display: flex; }
           album: v.album, disc: v.disc, daily: v.daily || undefined, streak: v.streak || undefined, key: vk || undefined,
           rec: cleanMap(v.rec), stars: cleanMap(v.stars), unl: Array.isArray(v.unl) ? v.unl : undefined, tut: v.tut && typeof v.tut === 'object' ? v.tut : undefined
         }));
+        restoreBoards(pid, v.boards);
         added++; firstId = firstId || pid;
       }
       savePlayers();
-      if (!added) return;
+      restoring = false;
+      if (!added && !changed) return;
       if (!me() && firstId) switchTo(firstId);
+      else if (changed) { reloadCurrentBoard(); renderAll(); renderRanks(); toast('Ripreso il salvataggio più recente dal cloud'); }
       else { renderRanks(); if (!$('setup').hidden) renderKnown(); }
-      toast(added === 1 ? 'Giocatore ritrovato!' : `${added} giocatori ritrovati!`);
-    } catch (e) {}
+      if (added) toast(added === 1 ? 'Giocatore ritrovato!' : `${added} giocatori ritrovati!`);
+    } catch (e) {} finally { restoring = false; }
+  }
+  /* Tabelloni dal cloud: per ogni tema vince quello salvato più di recente. Restituisce true se ha cambiato qualcosa. */
+  function restoreBoards(pid, boards) {
+    if (!boards || typeof boards !== 'object') return false;
+    let changed = false;
+    Object.entries(boards).forEach(([tid, cb]) => {
+      if (!THEMES.some(t => t.id === tid)) return;
+      let b; try { b = fromCloud(cb); } catch (e) { return; }
+      if (!validGame(b)) return;
+      let lb = null; try { lb = JSON.parse(localStorage.getItem(boardKey(pid, tid))); } catch (e) {}
+      const cu = Number(b.updated) || 0, lu = (lb && validGame(lb) && !lb.fresh) ? (Number(lb.updated) || 0) : -1;
+      if (lu === -1 || (lu && cu > lu)) { try { localStorage.setItem(boardKey(pid, tid), JSON.stringify(b)); changed = true; } catch (e) {} }
+    });
+    return changed;
+  }
+  /* Se il tabellone in gioco è cambiato nel salvataggio, lo ricarica (non durante una mossa: riprova dopo). */
+  function reloadCurrentBoard() {
+    if (!S || !P.current) return;
+    if (busy) { setTimeout(reloadCurrentBoard, 1500); return; }
+    const b = loadBoard(P.current, S.theme);
+    if (b && (S.fresh || (Number(b.updated) || 0) !== (Number(S.updated) || 0))) { S = normState(b, me()); prev = null; unpick(); renderAll(); }
   }
   async function afterAuth() {
-    renderAccount();
+    renderAccount(); renderSyncLine();
     if (!await resolveOnline()) return;
     await restoreFromAccount();
     pushOnline(true);
@@ -3494,12 +3546,13 @@ body.dev-on .dev { display: flex; }
       }
       if (p.backed !== prof + '|' + uid) {
         const r2 = await fetch(await authed(`users/${uid}/players/${encodeURIComponent(p.id)}`), { method: 'PUT', body: prof });
-        if (r2.ok) p.backed = prof + '|' + uid;
+        if (r2.ok) { p.backed = prof + '|' + uid; noteBackup(true); }
+        else noteBackup(false, `il database ha rifiutato il salvataggio (errore ${r2.status})`);
       }
       savePlayers();
       setSync(p, true, '');
       return sent;
-    } catch (e) { setSync(p, false, 'collegamento non riuscito, riprovo'); }
+    } catch (e) { setSync(p, false, 'collegamento non riuscito, riprovo'); noteBackup(false, 'nessun collegamento'); }
     return false;
   }
   /* Sincronizza tutti i giocatori di questo dispositivo: recupera anche le partite fatte offline. */
@@ -3526,7 +3579,7 @@ body.dev-on .dev { display: flex; }
       pullOnline(); pushOnline(true);
     }, 20000);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') pullOnline();
+      if (document.visibilityState === 'visible') { pullOnline(); if (authUser && !authUser.isAnonymous) restoreFromAccount(); }
       pushOnline(true);
     });
     window.addEventListener('online', () => {
@@ -3589,7 +3642,7 @@ body.dev-on .dev { display: flex; }
   $('ranksBtn').addEventListener('click', () => { ranksMode = S ? S.theme : null; openSheet('ranksSheet'); renderRanks(); pullOnline(); });
   $('missBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderMissions(); openSheet('missSheet'); });
   $('dayChestBtn').addEventListener('click', openDailyChest);
-  $('infoBtn').addEventListener('click', () => { renderAbilList(); openSheet('infoSheet'); });
+  $('infoBtn').addEventListener('click', () => { renderAbilList(); renderSyncLine(); openSheet('infoSheet'); });
   $('infoWho').addEventListener('click', () => { closeSheet('infoSheet'); openSetup(); });
   $('acctBtn').addEventListener('click', googleLogin);
   $('loginBtn').addEventListener('click', googleLogin);
@@ -3622,13 +3675,26 @@ body.dev-on .dev { display: flex; }
   });
 
   /* ---------- Salvataggio e avvio ---------- */
-  function savePlayers() { try { localStorage.setItem(LS_PLAYERS, JSON.stringify(P)); } catch (e) {} }
+  /* Ogni salvataggio porta la data (ms): tra telefono e cloud vince il più recente. Durante il ripristino dal cloud la data non si tocca. */
+  let restoring = false;
+  function savePlayers() {
+    const p = me(); if (p && !restoring) p.updated = Date.now();
+    try { localStorage.setItem(LS_PLAYERS, JSON.stringify(P)); } catch (e) {}
+  }
   function loadPlayers() {
     try { const p = JSON.parse(localStorage.getItem(LS_PLAYERS)); if (p && Array.isArray(p.list)) return p; } catch (e) {}
     return { list: [], current: null };
   }
   const boardKey = (pid, tid) => `${LS_BOARD}.${pid}.${tid}`;
-  function save() { if (!P.current || !S) return; try { localStorage.setItem(boardKey(P.current, S.theme), JSON.stringify(S)); } catch (e) {} }
+  function save() { if (!P.current || !S) return; if (!restoring) S.updated = Date.now(); try { localStorage.setItem(boardKey(P.current, S.theme), JSON.stringify(S)); } catch (e) {} }
+  /* I tabelloni di un giocatore, pronti per il cloud (Firebase perde i null negli array: le scorte vuote diventano -1). */
+  const toCloud = b => Object.assign({}, b, { slots: (b.slots || [null, null, null]).map(v => v === null ? EMPTY : v) });
+  const fromCloud = b => { const o = Object.assign({}, b); const sl = Array.isArray(o.slots) ? o.slots.slice(0, 3) : []; while (sl.length < 3) sl.push(EMPTY); o.slots = sl.map(v => (v === EMPTY || v === null || v === undefined) ? null : v); if (!Array.isArray(o.grid)) o.grid = Object.values(o.grid || {}); if (!Array.isArray(o.queue)) o.queue = o.queue ? Object.values(o.queue) : []; if (!Array.isArray(o.recent)) o.recent = []; ['held', 'spent'].forEach(k => { if (Array.isArray(o[k])) o[k] = Object.fromEntries(o[k].map((v, i) => [i, v]).filter(([i, v]) => v !== null && v !== undefined)); }); return o; };
+  function boardsOf(pid) {
+    const out = {};
+    THEMES.forEach(t => { try { const b = JSON.parse(localStorage.getItem(boardKey(pid, t.id))); if (validGame(b)) out[t.id] = toCloud(b); } catch (e) {} });
+    return out;
+  }
   const validGame = s => !!(s && Array.isArray(s.grid) && s.grid.length === SIZE && typeof s.cur === 'number');
   /* Il tabellone di un tema. Il vecchio salvataggio unico (una partita sola per giocatore) diventa il tabellone del tema in cui era. */
   function loadBoard(pid, tid) {
@@ -3661,7 +3727,7 @@ body.dev-on .dev { display: flex; }
     P.list.forEach(p => { normPlayer(p); ensureDaily(p); });
     const p = me();
     if (data && validGame(data.S) && p) { S = normState(data.S, p); prev = data.prev || null; }
-    else { const g = p && loadBoard(P.current, myTheme(p)); S = g ? normState(g, p) : newState(p ? myTheme(p) : undefined); }
+    else { const g = p && loadBoard(P.current, myTheme(p)); S = g ? normState(g, p) : newState(p ? myTheme(p) : undefined, 0, true); }
     savePlayers();
     lastScore = S.score;
     drawStars(); sizeParticles();
