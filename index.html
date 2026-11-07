@@ -756,6 +756,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
       <li><b>Più pezzi, più premi</b>: con 3 pezzi ne nasce 1 superiore, con 5 ne nascono 2, con 7 ne nascono 3, e così via.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
+      <li><b>Annulla</b>: toglie l'ultima tessera appoggiata, se non ha fatto fusioni. Dopo una fusione non si torna indietro.</li>
       <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai forzieri. Tocca la (i) per rivederli al volo.
         <ul class="powers">
           <li>🎲 <b>Dado</b>: cambia il prossimo pezzo con un altro.</li>
@@ -1953,6 +1954,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     S.moves++;
     logMove({ k: rainbow ? 'rainbow' : 'piece', i: idx, v: L, b: before, a: S.grid.slice() });
+    if (sim.steps.length) prev = null; /* dopo una fusione non si torna indietro */
     if (!rainbow) S.cur = draw(S);
     busy = false; afterMove(!rainbow);
   }
@@ -2088,6 +2090,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     }
     S.moves++;
     logMove({ k: 'magnet', b: before, a: S.grid.slice() });
+    prev = null; /* la calamita fa sempre fusioni: non si annulla */
     busy = false; afterMove(false);
   }
   function nudgeBonus(k) { attn(k); sfx('nope'); }
