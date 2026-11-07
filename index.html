@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
+<meta name="app-version" content="20261107095815">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -2873,6 +2874,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   $('who').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderProfile(); openSheet('profSheet'); });
   $('undoBtn').addEventListener('click', undo);
   $('logBtn').addEventListener('click', copyLog);
+  window.semeSafeReload = function () {
+    const go = () => {
+      if (busy || document.querySelector('.sheet:not([hidden])') || celebrating()) { setTimeout(go, 1500); return; }
+      try { save(); savePlayers(); } catch (e) {}
+      location.reload();
+    };
+    go();
+  };
   $('overUndo').addEventListener('click', undo);
   $('overNew').addEventListener('click', () => newGame());
   $('newBtn').addEventListener('click', askNew);
@@ -2963,6 +2972,29 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
 }
+/* Aggiornamento automatico: su iPhone l'app resta sospesa e non si ricarica da sola.
+   All'apertura e al ritorno nell'app controlla se c'è una versione nuova e, se sì, si ricarica (il gioco è già salvato). */
+(() => {
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
+  const V = (document.querySelector('meta[name="app-version"]') || {}).content;
+  let pending = false;
+  async function check(now) {
+    try {
+      const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = (await r.json()).v;
+      if (!v || v === V) return;
+      pending = true;
+      if (now && window.semeSafeReload) window.semeSafeReload();
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (pending && window.semeSafeReload) window.semeSafeReload(); else check(true);
+  });
+  setTimeout(() => check(true), 3000);
+  setInterval(() => { if (document.visibilityState === 'visible') check(false); }, 300000);
+})();
 </script>
 </body>
 </html>
