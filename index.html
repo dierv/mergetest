@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107115841">
+<meta name="app-version" content="20261107120650">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -703,7 +703,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <div><div id="profName" class="prof-name"></div><div id="profLv" class="prof-lv"></div></div>
     </div>
     <div class="stats">
-      <div><span class="lab">Scalate ★</span><b id="stStars">0</b></div>
+      <div><span class="lab">Temi ★</span><b id="stStars">0</b></div>
       <div><span class="lab">Monete</span><b id="stCoins">0</b></div>
       <div><span class="lab">Album</span><b id="stAlbum">0</b></div>
     </div>
@@ -769,7 +769,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Tre o più pezzi uguali che si toccano</b> (sopra, sotto, a destra, a sinistra) si fondono nel pezzo successivo, dove hai appoggiato l'ultimo. Le fusioni vanno a catena.</li>
       <li><b>Più pezzi, più premi</b>: con 3 pezzi ne nasce 1 superiore, con 5 ne nascono 2, con 7 ne nascono 3, e così via.</li>
       <li><b>Tieni il dito</b> su una casella per vedere prima cosa si fonde.</li>
-      <li><b>La scalata</b>: ogni tema ha il suo tabellone, sempre salvato; cambi tema quando vuoi dall'Album e ritrovi tutto com'era. La scalata parte dal tabellone vuoto e finisce in cima alla scala, al 12º gradino: lì prendi una ★, 2.000 monete e riparti dal germoglio. Il record di ogni tema resta.</li>
+      <li><b>La scalata</b>: ogni tema ha il suo tabellone, sempre salvato; cambi tema quando vuoi dall'Album e ritrovi tutto com'era. La scalata parte dal tabellone vuoto e finisce in cima alla scala, al 12º gradino: lì il tema prende la sua ★ (basta arrivarci una volta), tu prendi 2.000 monete e riparti dal germoglio. Il record di ogni tema resta.</li>
       <li><b>Tabellone pieno</b>: se non puoi usare né il martello né la calamita, la scalata finisce. I punti tornano a zero e riparti con il tabellone vuoto dalle tessere a cui eri arrivato. Record, album, livello, monete e poteri restano.</li>
       <li><b>Annulla</b>: toglie l'ultima tessera appoggiata, se non ha fatto fusioni. Dopo una fusione non si torna indietro.</li>
       <li><b>Poteri</b> (barra in basso): si accumulano, si comprano con le monete o escono dai forzieri. Tocca la (i) per rivederli al volo.
@@ -787,7 +787,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <li><b>Pezzi che escono</b>: più sali, più grandi sono. Il più piccolo è sempre 5 gradini sotto il tuo pezzo più alto. Un pezzo più piccolo continua a uscire finché ne hai almeno uno sul tabellone o in scorta, così puoi finirlo; poi non ricompare. Mai più di 3 pezzi uguali di fila.</li>
       <li><b>Livello</b>: sali di 1 livello ogni 2 gradini nuovi scoperti, in tutti i temi.</li>
       <li><b>Missioni del giorno</b>: 3 obiettivi nuovi ogni giorno con premi in monete. Completali tutti per il forziere del giorno; 7 giorni di fila valgono +500 monete.</li>
-      <li><b>Classifica</b>: in ordine di livello; accanto a ogni giocatore il pezzo più grande che ha sbloccato e le ★ delle scalate completate. Nell'Album trovi il record di ogni tema e la sua classifica.</li>
+      <li><b>Classifica</b>: una per ogni tema, in ordine di record, e quella generale in ordine di livello; nella generale accanto a ogni giocatore c'è il pezzo più alto raggiunto nel tema più avanzato che ha sbloccato. ★ = tema completato.</li>
       <li><b>Suoni</b>: musica e effetti partono al primo tocco. Su iPhone con l'interruttore silenzioso attivo non si sentono.</li>
     </ul>
     <div class="opt-row">
@@ -959,14 +959,15 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   const level = p => Math.ceil(discSum(p) / 2);
   const albumOf = (p, tid) => (p.album && p.album[tid]) || [];
   const recOf = (p, tid) => (p && p.rec && Number(p.rec[tid])) || 0;
-  const starsOf = (p, tid) => (p && p.stars && Math.floor(Number(p.stars[tid]))) || 0;
-  const starsTotal = p => p && p.stars ? Object.values(p.stars).reduce((a, v) => a + (Math.floor(Number(v)) || 0), 0) : 0;
-  /* Il pezzo più grande sbloccato: in caso di parità vince il tema in gioco. */
+  /* Una sola stella per tema: vuol dire che si è arrivati in cima almeno una volta. */
+  const starsOf = (p, tid) => (p && p.stars && Number(p.stars[tid]) > 0) ? 1 : 0;
+  const starsTotal = p => THEMES.reduce((a, t) => a + starsOf(p, t.id), 0);
+  /* Per la classifica: il pezzo più alto raggiunto nel tema più avanzato che il giocatore ha sbloccato. */
   function topOf(p) {
-    let best = { tid: 'seme', rung: 0 };
-    THEMES.forEach(t => { const r = Math.min((p.disc && p.disc[t.id]) || 0, TOP); if (r > best.rung || (r === best.rung && t.id === p.theme && r > 0)) best = { tid: t.id, rung: r }; });
-    const t = THEMES[themeIndex(best.tid)];
-    return { tid: best.tid, rung: best.rung, e: t.pieces[best.rung][0], n: t.pieces[best.rung][1] };
+    let ti = 0;
+    THEMES.forEach((t, i) => { if (themeOpen(p, i)) ti = i; });
+    const t = THEMES[ti], rung = Math.min((p.disc && p.disc[t.id]) || 0, TOP);
+    return { tid: t.id, rung, e: t.pieces[rung][0], n: t.pieces[rung][1] };
   }
   const themeIndex = tid => Math.max(0, THEMES.findIndex(t => t.id === tid));
   const albumTotal = p => THEMES.reduce((a, t) => a + albumOf(p, t.id).length, 0);
@@ -1248,8 +1249,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       li.appendChild(b); ol.appendChild(li);
     }
     const p = me(), n = p ? starsOf(p, S.theme) : 0;
-    $('cycleTag').textContent = n ? '★' + n : '';
-    $('cycleTag').title = n ? `Scalata completata ${n} ${n === 1 ? 'volta' : 'volte'}` : '';
+    $('cycleTag').textContent = n ? '★' : '';
+    $('cycleTag').title = n ? 'Tema completato: sei arrivato in cima' : '';
     const g = S.maxL + 1;
     $('goal').textContent = S.done ? 'Cima raggiunta! ★' : g > TOP ? 'Cima della scala' : `Prossimo: ${meta(g).e} ${nameOf(g)}`;
   }
@@ -1291,9 +1292,8 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const tn = theme().name, rec = p ? recOf(p, S.theme) : 0, isRec = S.score > (S.recordAtStart || 0);
     const recTxt = isRec ? ': nuovo record di questo tema!' : rec ? ` (record ${fmt(rec)}).` : '.';
     if (S.done) {
-      const n = p ? starsOf(p, S.theme) : 0;
       $('overTitle').textContent = '★ Cima raggiunta!';
-      $('overText').textContent = `Hai completato la scalata di «${tn}» con ${fmt(S.score)} punti${recTxt} Scalate completate in questo tema: ${n}. Ora si riparte dal germoglio: tabellone vuoto e punti da zero. Il record resta.`;
+      $('overText').textContent = `Hai completato la scalata di «${tn}» con ${fmt(S.score)} punti${recTxt} Questo tema ha la ★. Ora si riparte dal germoglio: tabellone vuoto e punti da zero. Il record resta.`;
       $('overUndo').hidden = true; $('overNew').textContent = 'Nuova scalata';
     } else {
       const m = meta(floorOf(S.maxL));
@@ -2025,10 +2025,11 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     S.done = true; S.over = false;
     if (S.score > recOf(p, tid)) p.rec[tid] = S.score;
     p.best = Math.max(p.best || 0, S.score);
-    p.stars[tid] = starsOf(p, tid) + 1;
+    const first = !starsOf(p, tid);
+    p.stars[tid] = 1;
     const gift = 2000; p.coins += gift;
     savePlayers(); prev = null;
-    return [`★ Scalata n. ${p.stars[tid]} completata! +${fmt(gift)} 🪙`];
+    return [first ? `★ Tema completato! +${fmt(gift)} 🪙` : `Di nuovo in cima! +${fmt(gift)} 🪙`];
   }
   function restartClimb(keepFloor) {
     const p = me(); if (!p || busy) return;
@@ -2416,7 +2417,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       const card = el('div', 'album-card' + (open ? '' : ' locked') + (t.id === curT ? ' current' : ''));
       const head = el('div', 'album-head'), stN = starsOf(p, t.id);
       head.appendChild(el('span', 'album-name', t.name));
-      if (stN) { const st = el('span', 'album-stars', '★' + stN); st.title = `Scalata completata ${stN} ${stN === 1 ? 'volta' : 'volte'}`; head.appendChild(st); }
+      if (stN) { const st = el('span', 'album-stars', '★'); st.title = 'Tema completato: sei arrivato in cima'; head.appendChild(st); }
       head.appendChild(el('span', 'album-chip', !open ? '🔒 Bloccato' : t.id === curT ? `In gioco · album ${got.length}/${PUZZLE_N}` : got.length >= PUZZLE_N ? 'Album completo ✓' : `Album ${got.length}/${PUZZLE_N}`));
       card.appendChild(head);
       const img = open ? puzzleImage(t) : null, paths = jigPaths(t.id);
@@ -2540,12 +2541,12 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   function rankRow(r, pos, tid) {
     const li = el('li', 'rank' + (r.id === P.current ? ' me' : ''));
     const pn = el('span', 'pn'), ps = el('span', 'ps');
-    const st = tid ? (r.starsMap[tid] || 0) : r.stars;
+    const st = tid ? (r.starsMap[tid] ? 1 : 0) : r.stars;
     pn.appendChild(el('span', 'pname', r.name));
-    /* sotto il nome: il record della scalata migliore e le stelle */
+    /* sotto il nome: il record della scalata migliore e le stelle (una per tema completato) */
     const sub = [];
     if (!tid && r.best > 0) sub.push('Record ' + fmt(r.best));
-    if (st) sub.push('★' + st);
+    if (st) sub.push(tid ? '★ completato' : '★' + (st > 1 ? st : ''));
     if (sub.length) pn.appendChild(el('small', 'psub', sub.join(' · ')));
     if (tid) ps.appendChild(el('span', 'pv', fmt(r.rec[tid])));
     else ps.append(el('span', 'pb', r.top), el('span', 'pv', 'Liv. ' + r.lvl));
@@ -2568,7 +2569,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const selTab = tabs.querySelector('[aria-selected="true"]');
     if (selTab && selTab.scrollIntoView && !$('ranksSheet').hidden) selTab.scrollIntoView({ block: 'nearest', inline: 'center' });
     if (ranksMode) {
-      $('ranksNote').textContent = `Scalate in «${THEMES[themeIndex(ranksMode)].name}»: il punteggio migliore di ognuno. ★ = volte arrivato in cima.`;
+      $('ranksNote').textContent = `Scalate in «${THEMES[themeIndex(ranksMode)].name}»: il punteggio migliore di ognuno. ★ = arrivato in cima.`;
       const list = rankedTheme(ranksMode);
       if (!list.length) { ol.appendChild(el('li', 'rank-empty', 'Nessuna scalata in questo tema, per ora.')); return; }
       list.slice(0, 20).forEach((r, i) => ol.appendChild(rankRow(r, i + 1, ranksMode)));
@@ -2870,7 +2871,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const lv = isFinite(lvl) && lvl > 0 ? Math.min(Math.floor(lvl), 1000) : Math.ceil(Math.min(bL, 11) / 2);
     const rec = {}, starsMap = {}, okT = k => THEMES.some(t => t.id === k);
     if (v.rec && typeof v.rec === 'object') Object.entries(v.rec).forEach(([k, n]) => { const x = Number(n); if (okT(k) && isFinite(x) && x > 0) rec[k] = x; });
-    if (v.stars && typeof v.stars === 'object') Object.entries(v.stars).forEach(([k, n]) => { const x = Math.floor(Number(n)); if (okT(k) && isFinite(x) && x > 0) starsMap[k] = x; });
+    if (v.stars && typeof v.stars === 'object') Object.entries(v.stars).forEach(([k, n]) => { if (okT(k) && Number(n) > 0) starsMap[k] = 1; });
     if (!Object.keys(rec).length) rec.seme = best;
     const top = typeof v.top === 'string' && v.top.length <= 16 && v.top ? v.top : THEMES[0].pieces[Math.min(bL, TOP)][0];
     return { id, best, name: String(v.name || '?').slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '❔', bestL: bL, lvl: lv, rec, starsMap, stars: Object.values(starsMap).reduce((a, x) => a + x, 0), top };
