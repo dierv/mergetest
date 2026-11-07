@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107113439">
+<meta name="app-version" content="20261107115841">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -395,6 +395,10 @@ body.tips .tip { opacity: 1; transform: none; }
 }
 .known-chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .known-chip .kc-i { font: 20px/1 var(--emoji); }
+.ranks-tabs { display: flex; gap: 6px; overflow-x: auto; margin: -2px -4px 0; padding: 2px 4px 4px; scrollbar-width: none; }
+.ranks-tabs::-webkit-scrollbar { display: none; }
+.ranks-tabs .chip { flex: 0 0 auto; border: 1px solid var(--panel-line); background: var(--solid); color: var(--ink); border-radius: 999px; padding: .42rem .8rem; font: 700 .82rem/1 var(--body); }
+.ranks-tabs .chip[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ranks-note { font-size: .82rem; color: var(--ink-soft); margin: -4px 0 0; }
 .ranks-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
 .rank { display: grid; grid-template-columns: 1.6em 30px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 12px; font-size: .95rem; }
@@ -750,9 +754,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
 <div id="ranksSheet" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="ranksTitle">
     <h2 id="ranksTitle">Classifica</h2>
+    <div id="ranksTabs" class="ranks-tabs" role="tablist" aria-label="Quale classifica"></div>
     <p id="ranksNote" class="ranks-note">su questo dispositivo</p>
     <ol id="ranks" class="ranks-list"></ol>
-    <div class="sheet-actions"><button type="button" id="ranksBack" class="btn" hidden>Classifica generale</button><button type="button" class="btn primary" data-close="ranksSheet">Chiudi</button></div>
+    <div class="sheet-actions"><button type="button" class="btn primary" data-close="ranksSheet">Chiudi</button></div>
   </div>
 </div>
 
@@ -2465,7 +2470,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
         else txt.append('Nessuna scalata ancora');
         row.appendChild(txt);
         const lb = el('button', 'btn', 'Classifica'); lb.type = 'button';
-        lb.addEventListener('click', () => { ranksMode = t.id; renderRanks(); closeSheet('albumSheet'); openSheet('ranksSheet'); pullOnline(); });
+        lb.addEventListener('click', () => { ranksMode = t.id; closeSheet('albumSheet'); openSheet('ranksSheet'); renderRanks(); pullOnline(); });
         row.appendChild(lb); card.appendChild(row);
         if (t.id !== curT) {
           const play = el('button', 'btn primary', 'Gioca questo tema');
@@ -2550,10 +2555,20 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   function renderRanks() {
     const ol = $('ranks'); ol.replaceChildren();
     if (ranksMode && !THEMES.some(t => t.id === ranksMode)) ranksMode = null;
-    $('ranksTitle').textContent = ranksMode ? `Scalate: ${THEMES[themeIndex(ranksMode)].name}` : 'Classifica';
-    $('ranksBack').hidden = !ranksMode;
+    /* Linguette: una classifica per ogni tema (quelli aperti o con almeno un record) più quella generale per livello. */
+    const pm0 = me(), rows = allRows(), tabs = $('ranksTabs'); tabs.replaceChildren();
+    const chip = (id, label) => {
+      const b = el('button', 'chip', label); b.type = 'button'; b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String((id || null) === (ranksMode || null)));
+      b.addEventListener('click', () => { ranksMode = id; renderRanks(); });
+      tabs.appendChild(b);
+    };
+    THEMES.forEach(t => { if ((pm0 && themeOpen(pm0, themeIndex(t.id))) || rows.some(r => (r.rec[t.id] || 0) > 0)) chip(t.id, t.name); });
+    chip(null, 'Generale');
+    const selTab = tabs.querySelector('[aria-selected="true"]');
+    if (selTab && selTab.scrollIntoView && !$('ranksSheet').hidden) selTab.scrollIntoView({ block: 'nearest', inline: 'center' });
     if (ranksMode) {
-      $('ranksNote').textContent = 'Il punteggio migliore di una scalata in questo tema. ★ = scalate completate.';
+      $('ranksNote').textContent = `Scalate in «${THEMES[themeIndex(ranksMode)].name}»: il punteggio migliore di ognuno. ★ = volte arrivato in cima.`;
       const list = rankedTheme(ranksMode);
       if (!list.length) { ol.appendChild(el('li', 'rank-empty', 'Nessuna scalata in questo tema, per ora.')); return; }
       list.slice(0, 20).forEach((r, i) => ol.appendChild(rankRow(r, i + 1, ranksMode)));
@@ -2565,9 +2580,9 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const meOnline = !!(pm && online.some(e => e.id === pm.id && e.best >= pm.best && e.lvl >= level(pm)));
     const myLine = !pm || pm.best <= 0 ? '' : meOnline ? ' Il tuo punteggio è online ✓'
       : si && !si.ok ? ` Il tuo punteggio non è ancora online: ${si.msg}.` : ' Invio del tuo punteggio…';
-    $('ranksNote').textContent = !FIREBASE_URLS.length ? 'Punteggi di questo dispositivo.'
+    $('ranksNote').textContent = 'In ordine di livello. ' + (!FIREBASE_URLS.length ? 'Punteggi di questo dispositivo.'
       : onlineOk ? `Online: ${online.length} ${online.length === 1 ? 'giocatore' : 'giocatori'} in classifica.` + myLine
-      : onlineTried ? 'Offline: vedi solo questo dispositivo. Si aggiorna quando torni online.' + myLine : 'Collegamento…';
+      : onlineTried ? 'Offline: vedi solo questo dispositivo. Si aggiorna quando torni online.' + myLine : 'Collegamento…');
     const all = ranked(), list = all.slice(0, 20);
     if (!list.length) { ol.appendChild(el('li', 'rank-empty', 'Ancora nessun punteggio. Il primo posto è libero.')); return; }
     list.forEach((p, i) => ol.appendChild(rankRow(p, i + 1)));
@@ -3017,8 +3032,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   $('overNew').addEventListener('click', () => restartClimb(!S.done));
   $('newBtn').addEventListener('click', askNew);
   $('albumBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } selPiece = null; renderAlbum(); openSheet('albumSheet'); });
-  $('ranksBtn').addEventListener('click', () => { ranksMode = null; renderRanks(); openSheet('ranksSheet'); pullOnline(); });
-  $('ranksBack').addEventListener('click', () => { ranksMode = null; renderRanks(); });
+  $('ranksBtn').addEventListener('click', () => { ranksMode = S ? S.theme : null; openSheet('ranksSheet'); renderRanks(); pullOnline(); });
   $('missBtn').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderMissions(); openSheet('missSheet'); });
   $('dayChestBtn').addEventListener('click', openDailyChest);
   $('infoBtn').addEventListener('click', () => openSheet('infoSheet'));
