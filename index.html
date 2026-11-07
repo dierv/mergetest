@@ -950,7 +950,15 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   };
   const themeOpen = (p, ti) => ti === 0 || albumOf(p, THEMES[ti - 1].id).length >= PUZZLE_N;
   /* Completa i dati dei giocatori salvati con le versioni precedenti. */
+  /* Chiave segreta del giocatore: resta sul telefono e nel backup Google. Serve a riprendersi il giocatore
+     se l'account cambia (per esempio dopo il collegamento a Google). */
+  function newKey() {
+    const a = new Uint8Array(18);
+    try { crypto.getRandomValues(a); } catch (e) { for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 256); }
+    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+  }
   function normPlayer(p) {
+    if (typeof p.key !== 'string' || p.key.length < 16 || p.key.length > 64) p.key = newKey();
     if (typeof p.coins !== 'number') p.coins = 0;
     if (!p.inv) p.inv = { hammer: 2, rainbow: 1, dice: 2, magnet: 1 };
     if (typeof p.inv.magnet !== 'number') p.inv.magnet = 1; /* regalo a chi giocava già */
@@ -2440,9 +2448,13 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
   function renderRanks() {
     const ol = $('ranks'); ol.replaceChildren();
+    const pm = me(), si = pm && syncInfo[pm.id];
+    const meOnline = !!(pm && online.some(e => e.id === pm.id && e.best >= pm.best));
+    const myLine = !pm || pm.best <= 0 ? '' : meOnline ? ' Il tuo punteggio è online ✓'
+      : si && !si.ok ? ` Il tuo punteggio non è ancora online: ${si.msg}.` : ' Invio del tuo punteggio…';
     $('ranksNote').textContent = !FIREBASE_URLS.length ? 'Punteggi di questo dispositivo.'
-      : onlineOk ? 'Online: tutti i giocatori.'
-      : onlineTried ? 'Offline: vedi solo questo dispositivo. Si aggiorna quando torni online.' : 'Collegamento…';
+      : onlineOk ? `Online: ${online.length} ${online.length === 1 ? 'giocatore' : 'giocatori'} in classifica.` + myLine
+      : onlineTried ? 'Offline: vedi solo questo dispositivo. Si aggiorna quando torni online.' + myLine : 'Collegamento…';
     const all = ranked(), list = all.slice(0, 20);
     if (!list.length) { ol.appendChild(el('li', 'rank-empty', 'Ancora nessun punteggio. Il primo posto è libero.')); return; }
     list.forEach((p, i) => ol.appendChild(rankRow(p, i + 1)));
@@ -2565,16 +2577,22 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   }
 
   /* ---------- Account (Firebase Authentication) ---------- */
-  let AUTH = null, authUser = null, authFailed = false;
+  let AUTH = null, authUser = null, authFailed = false, authErr = '', authRetryAt = 0;
   function initAuth() {
     if (AUTH || !window.semeAuth) return;
     AUTH = window.semeAuth;
     AUTH.A.onAuthStateChanged(AUTH.auth, u => {
       authUser = u;
       renderAccount();
-      if (!u) { AUTH.A.signInAnonymously(AUTH.auth).catch(() => {}); return; }
+      if (!u) { signInAnon(); return; }
+      authErr = '';
       afterAuth();
     });
+  }
+  function signInAnon() {
+    if (!AUTH || authUser) return;
+    authRetryAt = Date.now();
+    AUTH.A.signInAnonymously(AUTH.auth).catch(e => { authErr = (e && e.code || 'errore').replace(/^auth\//, ''); renderRanks(); });
   }
   window.addEventListener('seme-auth-ready', initAuth);
   window.addEventListener('seme-auth-failed', () => { authFailed = true; renderAccount(); });
@@ -2583,19 +2601,34 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const t = await idToken();
     return t && ONLINE ? `${ONLINE}/${path}.json?auth=${encodeURIComponent(t)}` : '';
   }
-  /* Ogni giocatore appartiene a un account: serve per scrivere punteggi e per ritrovarlo dopo. */
+  /* Ogni giocatore appartiene a un account: serve per scrivere punteggi e per ritrovarlo dopo.
+     Se risulta di un altro account (per esempio quello anonimo di prima del collegamento a Google),
+     il telefono che ha la chiave segreta del giocatore se lo riprende. */
+  const keySent = new Set();
   async function ensureOwner(pid) {
     if (!authUser || !await resolveOnline()) return 'offline';
     const url = await authed('owners/' + encodeURIComponent(pid));
     if (!url) return 'offline';
+    const pl = P.list.find(x => x.id === pid), key = pl && pl.key;
     try {
       const r = await fetch(url, { cache: 'no-store' });
       if (!r.ok) return 'offline';
       const o = await r.json();
-      if (o === authUser.uid) return 'ok';
-      if (o) return 'other';
-      const w = await fetch(url, { method: 'PUT', body: JSON.stringify(authUser.uid) });
-      return w.ok ? 'ok' : 'offline';
+      if (o !== authUser.uid) {
+        if (o) {
+          if (!key) return 'other';
+          const c = await fetch(await authed(`claims/${encodeURIComponent(pid)}/${encodeURIComponent(authUser.uid)}`), { method: 'PUT', body: JSON.stringify(key) });
+          if (!c.ok) return 'other';
+        }
+        const w = await fetch(url, { method: 'PUT', body: JSON.stringify(authUser.uid) });
+        if (!w.ok) return o ? 'other' : 'offline';
+      }
+      if (key && !keySent.has(pid + '|' + authUser.uid)) {
+        /* la chiave si scrive una volta sola: se c'è già, il database rifiuta e va bene così */
+        await fetch(await authed('keys/' + encodeURIComponent(pid)), { method: 'PUT', body: JSON.stringify(key) }).catch(() => {});
+        keySent.add(pid + '|' + authUser.uid);
+      }
+      return 'ok';
     } catch (e) { return 'offline'; }
   }
   async function claimName(key, id) {
@@ -2616,7 +2649,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       return again && again !== id ? 'taken' : 'offline';
     } catch (e) { return 'offline'; }
   }
-  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null });
+  const profileOf = p => ({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, theme: p.theme || 'seme', coins: p.coins, inv: p.inv, icons: p.icons, album: p.album, disc: p.disc, daily: p.daily || null, streak: p.streak || null, key: p.key });
   /* Dopo l'accesso con Google: recupera i giocatori salvati nell'account. */
   async function restoreFromAccount() {
     if (!authUser || authUser.isAnonymous) return;
@@ -2630,13 +2663,14 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       for (const [pid, v] of Object.entries(data)) {
         if (!v || typeof v.name !== 'string') continue;
         const loc = P.list.find(x => x.id === pid);
-        if (loc) { loc.best = Math.max(loc.best, Number(v.best) || 0); loc.bestL = Math.max(loc.bestL || 0, Number(v.bestL) || 0); loc.orphan = false; continue; }
+        const vk = typeof v.key === 'string' && v.key.length >= 16 && v.key.length <= 64 ? v.key : null;
+        if (loc) { loc.best = Math.max(loc.best, Number(v.best) || 0); loc.bestL = Math.max(loc.bestL || 0, Number(v.bestL) || 0); loc.orphan = false; if (vk) loc.key = vk; continue; }
         const icons = Array.isArray(v.icons) ? v.icons.filter(i => ICONS.includes(i)) : undefined;
         P.list.push(normPlayer({
           id: pid, name: v.name.slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '🦊',
           best: Number(v.best) || 0, bestL: Number(v.bestL) || 0, theme: v.theme || 'seme', claimed: true,
           coins: Number(v.coins) || 0, inv: v.inv, icons,
-          album: v.album, disc: v.disc, daily: v.daily || undefined, streak: v.streak || undefined
+          album: v.album, disc: v.disc, daily: v.daily || undefined, streak: v.streak || undefined, key: vk || undefined
         }));
         added++; firstId = firstId || pid;
       }
@@ -2718,42 +2752,63 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     onlineTried = true;
     renderRanks();
   }
-  /* Invia punteggio e profilo di un giocatore se sono cambiati dall'ultimo invio riuscito. */
+  /* Stato dell'invio online per ogni giocatore di questo dispositivo, mostrato in Classifica. */
+  const syncInfo = {};
+  const verified = new Set();
+  function setSync(p, ok, msg) { syncInfo[p.id] = { ok, msg }; if (p.id === P.current) renderRanks(); }
+  /* Invia punteggio e profilo di un giocatore.
+     Una volta per sessione ricontrolla online proprietario, nome e punteggio: i segni salvati sul telefono
+     ("già inviato", "nome già registrato") possono essere vecchi, per esempio se il database è stato svuotato. */
   async function pushPlayer(p) {
-    if (!p || p.nameTaken || p.orphan || !authUser) return false;
-    const uid = authUser.uid;
-    const body = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p) });
-    const prof = JSON.stringify(profileOf(p));
-    if (p.synced === body && p.owner === uid && p.backed === prof + '|' + uid) return false;
-    if (p.owner !== uid) {
+    if (!p) return false;
+    if (!authUser) { setSync(p, false, authErr ? `accesso non riuscito (${authErr})` : authFailed && !AUTH ? 'accesso non disponibile: serve internet' : 'accesso in corso…'); return false; }
+    const uid = authUser.uid, vk = p.id + '|' + uid;
+    if (!verified.has(vk)) {
+      const wasTaken = p.nameTaken;
+      delete p.orphan; delete p.nameTaken;
       const o = await ensureOwner(p.id);
-      if (o === 'other') { p.orphan = true; savePlayers(); return false; }
-      if (o !== 'ok') return false;
-      p.owner = uid; savePlayers();
-    }
-    if (!p.claimed) {
+      if (o === 'other') { p.orphan = true; savePlayers(); setSync(p, false, 'questo giocatore appartiene a un altro account'); return false; }
+      if (o !== 'ok') { setSync(p, false, 'collegamento non riuscito, riprovo'); return false; }
+      p.owner = uid;
       const res = await claimName(nameKey(p.name), p.id);
       if (res === 'taken') {
         p.nameTaken = true; savePlayers();
-        if (p.id === P.current) toast(`«${p.name}» è già usato online: crea un giocatore con un altro nome`);
+        if (p.id === P.current && !wasTaken) toast(`«${p.name}» è già usato online: crea un giocatore con un altro nome`);
+        setSync(p, false, `il nome «${p.name}» è già usato da un altro giocatore`);
         return false;
       }
-      if (res !== 'ok') return false;
-      p.claimed = true; savePlayers();
+      if (res !== 'ok') { setSync(p, false, 'registrazione del nome non riuscita, riprovo'); return false; }
+      p.claimed = true;
+      try {
+        const r = await fetch(ONLINE + '/scores/' + encodeURIComponent(p.id) + '.json', { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const cur = await r.json();
+        if (cur && Number(cur.best) > p.best) p.best = Number(cur.best);
+        const want = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p) });
+        const have = cur ? JSON.stringify({ name: cur.name, icon: cur.icon, best: cur.best, bestL: cur.bestL || 0, lvl: cur.lvl || 0 }) : '';
+        p.synced = have === want ? want : '';
+      } catch (e) { setSync(p, false, 'collegamento non riuscito, riprovo'); return false; }
+      savePlayers();
+      verified.add(vk);
     }
+    const body = JSON.stringify({ name: p.name, icon: p.icon, best: p.best, bestL: p.bestL || 0, lvl: level(p) });
+    const prof = JSON.stringify(profileOf(p));
+    if (p.best <= 0 && p.synced !== body) p.synced = body; /* niente da mostrare in classifica finché non fa punti */
+    let sent = false;
     try {
-      let sent = false;
       if (p.synced !== body) {
         const r = await fetch(await authed('scores/' + encodeURIComponent(p.id)), { method: 'PUT', body });
         if (r.ok) { p.synced = body; sent = true; }
+        else { verified.delete(vk); setSync(p, false, `il database ha rifiutato il punteggio (errore ${r.status}), riprovo`); savePlayers(); return false; }
       }
       if (p.backed !== prof + '|' + uid) {
         const r2 = await fetch(await authed(`users/${uid}/players/${encodeURIComponent(p.id)}`), { method: 'PUT', body: prof });
         if (r2.ok) p.backed = prof + '|' + uid;
       }
       savePlayers();
+      setSync(p, true, '');
       return sent;
-    } catch (e) {}
+    } catch (e) { setSync(p, false, 'collegamento non riuscito, riprovo'); }
     return false;
   }
   /* Sincronizza tutti i giocatori di questo dispositivo: recupera anche le partite fatte offline. */
@@ -2774,13 +2829,17 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     pushT = setTimeout(syncAll, now ? 0 : 2500);
   }
   if (FIREBASE_URLS.length) {
-    setInterval(() => { if (document.visibilityState === 'visible') { pullOnline(); pushOnline(true); } }, 20000);
+    setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (AUTH && !authUser && Date.now() - authRetryAt > 55000) signInAnon();
+      pullOnline(); pushOnline(true);
+    }, 20000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') pullOnline();
       pushOnline(true);
     });
     window.addEventListener('online', () => {
-      if (AUTH && !authUser) AUTH.A.signInAnonymously(AUTH.auth).catch(() => {});
+      signInAnon();
       pullOnline(); pushOnline(true);
     });
   }
