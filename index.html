@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107095815">
+<meta name="app-version" content="20261107105012">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -792,6 +792,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
       <span>Qualcosa di strano? Copia le ultime mosse e incollale nella chat.</span>
       <button id="logBtn" class="btn" type="button">Copia</button>
     </div>
+    <p id="verLine" class="hint-text"></p>
     <div class="sheet-actions">
       <button type="button" id="infoWho" class="btn">Cambia giocatore</button>
       <button type="button" id="newBtn" class="btn">Nuova partita</button>
@@ -2443,7 +2444,7 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     const ps = el('span', 'ps');
     ps.append(el('span', 'pb', meta(Math.min(p.bestL || 0, 11)).e), el('span', 'pv', fmt(p.best)));
     const pn = el('span', 'pn', p.name);
-    pn.appendChild(el('small', 'plv', 'Liv. ' + (p.disc ? level(p) : (p.lvl || 0))));
+    pn.appendChild(el('small', 'plv', 'Liv. ' + (p.disc ? level(p) : (p.lvl || Math.ceil(Math.min(p.bestL || 0, 11) / 2)))));
     li.append(el('span', 'pos', String(pos)), el('span', 'pi', p.icon), pn, ps);
     return li;
   }
@@ -2732,13 +2733,10 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
     if (!v || typeof v !== 'object') return null;
     const best = Number(v.best), bestL = Number(v.bestL), lvl = Number(v.lvl);
     if (!isFinite(best) || best <= 0) return null;
-    return {
-      id, best,
-      name: String(v.name || '?').slice(0, 16),
-      icon: ICONS.includes(v.icon) ? v.icon : '❔',
-      bestL: isFinite(bestL) && bestL >= 0 ? Math.min(Math.floor(bestL), 200) : 0,
-      lvl: isFinite(lvl) && lvl >= 0 ? Math.min(Math.floor(lvl), 1000) : 0
-    };
+    const bL = isFinite(bestL) && bestL >= 0 ? Math.min(Math.floor(bestL), 200) : 0;
+    /* Se il livello non è arrivato (versioni vecchie dell'app), si ricava dal pezzo più alto: è almeno quello. */
+    const lv = isFinite(lvl) && lvl > 0 ? Math.min(Math.floor(lvl), 1000) : Math.ceil(Math.min(bL, 11) / 2);
+    return { id, best, name: String(v.name || '?').slice(0, 16), icon: ICONS.includes(v.icon) ? v.icon : '❔', bestL: bL, lvl: lv };
   }
   async function pullOnline() {
     if (!FIREBASE_URLS.length) return;
@@ -2874,6 +2872,15 @@ body.still *, body.still *::before, body.still *::after { animation-duration: 1m
   $('who').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderProfile(); openSheet('profSheet'); });
   $('undoBtn').addEventListener('click', undo);
   $('logBtn').addEventListener('click', copyLog);
+  (() => {
+    const m = document.querySelector('meta[name="app-version"]'), v = m && m.content;
+    let txt = 'Versione di prova';
+    if (v && /^\d{14}$/.test(v)) {
+      const d = new Date(Date.UTC(+v.slice(0, 4), +v.slice(4, 6) - 1, +v.slice(6, 8), +v.slice(8, 10), +v.slice(10, 12)));
+      txt = 'Versione del ' + d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '. Si aggiorna da sola quando ce n\'è una nuova.';
+    }
+    $('verLine').textContent = txt;
+  })();
   window.semeSafeReload = function () {
     const go = () => {
       if (busy || document.querySelector('.sheet:not([hidden])') || celebrating()) { setTimeout(go, 1500); return; }
