@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107193334">
+<meta name="app-version" content="20261107193754">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -190,6 +190,8 @@ body::before {
 .cell .holds { position: absolute; right: 2px; top: 0; bottom: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; gap: 2px; pointer-events: none; }
 .cell .hold { width: calc(var(--cs, 56px) * .29); height: calc(var(--cs, 56px) * .29); border-radius: 50%; background: #fff; border: 1.5px solid #c9a35a; font: calc(var(--cs, 56px) * .17)/1 var(--emoji); color: #222; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 .cell .hold.first { border-color: #e2921c; box-shadow: 0 0 0 2px rgba(255, 190, 70, .55), 0 1px 3px rgba(0,0,0,.25); }
+.cell .smk { position: absolute; right: 2px; top: 2px; z-index: 3; width: calc(var(--cs, 56px) * .3); height: calc(var(--cs, 56px) * .3); border-radius: 50%; background: rgba(255, 255, 255, .92); border: 1.5px solid #9aa4b8; font: calc(var(--cs, 56px) * .18)/1 var(--emoji); display: grid; place-items: center; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); animation: smoke 2.4s ease-in-out infinite; }
+@keyframes smoke { 0%, 100% { transform: translateY(0); opacity: .95; } 50% { transform: translateY(-2px); opacity: .7; } }
 .cell.can-drag, .slot-tile.can-drag { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 body.dragging { -webkit-user-select: none; user-select: none; cursor: grabbing; }
 body.dragging .toast { display: none; }
@@ -199,8 +201,7 @@ body.dragging .toast { display: none; }
 .cell.drag-src .holds .hold.first { opacity: .35; }
 .cell.drop-ok { outline: 3px solid var(--accent); outline-offset: -3px; box-shadow: inset 0 0 0 1px var(--panel-line), 0 0 0 4px rgba(255, 200, 80, .35); }
 .slot-tile.drop-ok { outline: 3px solid var(--accent); outline-offset: 3px; }
-.stash-slot.locked.hut .lk { font-size: 15px; }
-.stash-slot.locked .pr:empty { display: none; }
+
 .cell.picked { outline: 3px solid var(--accent); outline-offset: -3px; }
 .cell.picked .pc { animation: bob .8s ease-in-out infinite; }
 .cell.prune-arm { outline: 3px dashed var(--accent); outline-offset: -3px; }
@@ -862,7 +863,7 @@ body.dev-on .dev { display: flex; }
           <li>🧲 <b>Calamita</b>: unisce subito tutti i pezzi uguali del tabellone, anche se sono lontani (almeno 3 uguali, stessa regola delle fusioni). Libera spazio, dà punti e monete.</li>
         </ul>
       </li>
-      <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La prima casella c'è solo finché hai una 🛖 Capanna sul tabellone (senza, si chiude e il pezzo torna in fila); la seconda e la terza si comprano con le monete e valgono solo per la scalata in corso.</li>
+      <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La seconda e la terza casella si comprano con le monete e valgono solo per la scalata in corso.</li>
       <li><b>Trascinare</b>: il pezzo "Prossimo" si può trascinare su una casella vuota o dentro una Casa/Borgo; anche i pezzi già sul tabellone si possono trascinare dentro una Casa/Borgo (è una mossa). Da una Casa/Borgo il pezzo si trascina fuori su una casella vuota (lo appoggi, è una mossa) o sul "Prossimo" (torna in mano, quello che avevi si mette in fila). Il Germoglio si trascina anche su una casella vuota.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
@@ -974,7 +975,7 @@ body.dev-on .dev { display: flex; }
     ['Trapianto', 'toccalo e poi una casella vuota per spostarlo. Conta come una mossa, il prossimo pezzo resta in mano.'],
     ['Potatura', 'toccalo due volte e torna al primo gradino. Serve quando ti manca il terzo pezzo piccolo. Conta come una mossa.'],
     ['Vedetta', 'finché ce n\'è uno sul tabellone vedi anche il pezzo dopo il prossimo.'],
-    ['Riparo', 'finché ce n\'è una sul tabellone hai la 1ª casella di scorta. Senza, la scorta si chiude e il pezzo che c\'era torna in fila.'],
+    ['Segnale di fumo', 'toccala e il fumo chiama un altro pezzo: il prossimo cambia. Vale una volta per ogni Capanna (💨 = fuoco acceso); poi il fuoco è spento.'],
     ['Ospita 1', 'trascinaci sopra il prossimo pezzo, o un pezzo del tabellone, per metterlo dentro. Per tirarlo fuori trascinalo dalla casa su una casella vuota (lo appoggi) o sul "Prossimo" (torna in mano).'],
     ['Ospita 3', 'come la precedente, ma con 3 posti. Esce per primo il pezzo con il bollino arancione; toccando la casa cambi l\'ordine.'],
     ['Tesoro', 'quando lo costruisci, un regalo 🎁 compare in una casella liberata dalla fusione.'],
@@ -1126,6 +1127,7 @@ body.dev-on .dev { display: flex; }
     if (typeof s.chestDue !== 'number') s.chestDue = 0;
     if (!s.theme || !THEMES.some(t => t.id === s.theme) || (p && !themeOpen(p, themeIndex(s.theme)))) s.theme = (p && p.theme) || 'seme';
     if (typeof s.extra !== 'number') s.extra = Math.max(0, Math.min(2, (typeof s.open === 'number' ? s.open : 1) - 1)); delete s.open;
+    if (!s.spent || typeof s.spent !== 'object' || Array.isArray(s.spent)) s.spent = {};
     if (typeof s.done !== 'boolean') s.done = false;
     if (!Array.isArray(s.queue)) s.queue = []; s.queue = s.queue.filter(v => typeof v === 'number' && ((v >= 0 && v <= TOP) || v === JOLLY));
     if (!s.held || typeof s.held !== 'object' || Array.isArray(s.held)) s.held = {};
@@ -1226,9 +1228,8 @@ body.dev-on .dev { display: flex; }
      del gruppo a cui si era arrivati: le prime tessere e il minimo che esce restano quelli. */
   /* Il prossimo pezzo: prima quelli rimessi in fila dalla scorta, poi uno nuovo. */
   function nextPiece(st) { return (st.queue && st.queue.length) ? st.queue.shift() : draw(st); }
-  /* Scorta: la 1ª casella c'è finché una Capanna (3º gradino) è sul tabellone; la 2ª e la 3ª si comprano (S.extra). */
-  const hasHut = st => !!(st && st.grid && st.grid.includes(3));
-  const slotOpen = (i, st) => { st = st || S; return i === 0 ? hasHut(st) : (st.extra || 0) >= i; };
+  /* Scorta: la 1ª casella è sempre aperta; la 2ª e la 3ª si comprano (S.extra). */
+  const slotOpen = (i, st) => { st = st || S; return i === 0 || (st.extra || 0) >= i; };
   function newState(tid, keepMax) {
     const g = Array(SIZE).fill(EMPTY), F = floorOf(keepMax || 0);
     let placed = 0, guard = 0;
@@ -1243,7 +1244,7 @@ body.dev-on .dev { display: flex; }
     const maxL = Math.max(keepMax || 0, ...g), p = me();
     let theme = tid || (p && p.theme) || 'seme';
     if (p && !themeOpen(p, themeIndex(theme))) theme = 'seme';
-    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, done: false, moves: 0, recordAtStart: recOf(p, theme), theme, chests: 0, chestV: 2, chestDue: 0, extra: 0, floor: 0, recent: [], queue: [], held: {} };
+    const st = { grid: g, cur: 0, slots: [null, null, null], score: 0, maxL, over: false, done: false, moves: 0, recordAtStart: recOf(p, theme), theme, chests: 0, chestV: 2, chestDue: 0, extra: 0, floor: 0, recent: [], queue: [], held: {}, spent: {} };
     st.cur = draw(st);
     return st;
   }
@@ -1310,7 +1311,7 @@ body.dev-on .dev { display: flex; }
   }
   function renderCell(i, anim, delay) {
     const c = cells[i];
-    c.querySelectorAll('.pc, .holds').forEach(x => x.remove());
+    c.querySelectorAll('.pc, .holds, .smk').forEach(x => x.remove());
     const v = S.grid[i], r = Math.floor(i / N) + 1, col = i % N + 1;
     const h = S.held && S.held[i];
     if (HOST[v] && h && h.length) {
@@ -1318,6 +1319,7 @@ body.dev-on .dev { display: flex; }
       h.forEach((x, k) => box.appendChild(el('span', 'hold' + (k === 0 ? ' first' : ''), meta(x).e)));
       c.appendChild(box);
     }
+    if (v === 3 && !(S.spent && S.spent[i])) { const k = el('span', 'smk', '💨'); k.title = 'Fuoco acceso: tocca per il segnale di fumo'; c.appendChild(k); }
     c.classList.toggle('can-drag', v >= 0);
     if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'regalo, tocca per aprirlo' : nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
@@ -1333,8 +1335,7 @@ body.dev-on .dev { display: flex; }
       b.replaceChildren(); b.className = 'stash-slot';
       if (!slotOpen(i)) {
         b.classList.add('locked');
-        if (i === 0) { b.classList.add('hut'); b.append(el('span', 'lk', meta(3).e), el('span', 'pr', '')); b.setAttribute('aria-label', `Scorta 1: si apre finché c'è ${nameOf(3)} sul tabellone`); }
-        else { b.append(el('span', 'lk', '🔒'), el('span', 'pr', String(SLOT_PRICES[i]))); b.setAttribute('aria-label', `Scorta ${i + 1} bloccata: costa ${SLOT_PRICES[i]} monete per questa scalata`); }
+        b.append(el('span', 'lk', '🔒'), el('span', 'pr', String(SLOT_PRICES[i]))); b.setAttribute('aria-label', `Scorta ${i + 1} bloccata: costa ${SLOT_PRICES[i]} monete per questa scalata`);
       } else if (S.slots[i] === null) {
         b.setAttribute('aria-label', `Scorta ${i + 1} vuota: tocca per mettere da parte il prossimo pezzo`);
       } else {
@@ -2283,7 +2284,23 @@ body.dev-on .dev { display: flex; }
       pruneArm = idx; cells[idx].classList.add('prune-arm'); toast(`Potatura: tocca ancora e torna ${meta(0).e} ${nameOf(0)}`); return;
     }
     if (HOST[v]) { hostCycle(idx); return; }
+    if (v === 3) { smokeSignal(idx); return; }
     nudge(idx);
+  }
+  /* Segnale di fumo: la Capanna chiama un altro pezzo, una volta sola. */
+  function smokeSignal(idx) {
+    if (busy || S.grid[idx] !== 3) return;
+    if (S.spent[idx]) { nudge(idx); toast('Fuoco spento: questa Capanna ha già fatto il segnale'); return; }
+    if (S.cur === JOLLY) { nudge(idx); toast('Hai già un Arcobaleno in mano'); return; }
+    saveUndo();
+    let n = S.cur, tries = 0;
+    while (n === S.cur && tries++ < 20) n = draw(S);
+    S.cur = n; S.spent[idx] = true;
+    const c = center(idx); sparkle(c.x, c.y - 10, '#cfd6e6', 10, 1);
+    const r = $('nextTile').getBoundingClientRect(); sparkle(r.left + r.width / 2, r.top + r.height / 2, '#ffd25a', 8, r.width / 56);
+    sfx('dice'); buzz(12);
+    renderCell(idx); renderHand('roll'); $('undoBtn').disabled = !prev; save();
+    toast(`${meta(3).e} Segnale di fumo: arriva ${meta(S.cur).e} ${nameOf(S.cur)}`);
   }
   async function moveSprout(from, to) {
     if (busy || S.grid[from] !== 0 || S.grid[to] !== EMPTY) return;
@@ -2338,11 +2355,11 @@ body.dev-on .dev { display: flex; }
     return true;
   }
   /* Se una Casa o un Borgo non c'è più (fuso, tolto, risucchiato), i pezzi dentro tornano in fila.
-     Lo stesso per la 1ª scorta quando sul tabellone non c'è più una Capanna. */
+     Il fuoco spento di una Capanna si dimentica quando in quella casella non c'è più una Capanna. */
   function reconcileHeld() {
     if (!S || !S.held) return;
     let n = 0;
-    if (!hasHut(S) && S.slots && S.slots[0] !== null && S.slots[0] !== undefined) { S.queue.unshift(S.slots[0]); S.slots[0] = null; n++; toast(`${meta(3).e} Senza ${nameOf(3)} la scorta si chiude: il pezzo torna in fila`); }
+    if (S.spent) Object.keys(S.spent).forEach(k => { if (S.grid[k] !== 3) delete S.spent[k]; });
     Object.keys(S.held).forEach(k => {
       const i = Number(k), list = S.held[k], cap = HOST[S.grid[i]] || 0;
       if (!list || !list.length) { delete S.held[k]; return; }
@@ -2351,7 +2368,7 @@ body.dev-on .dev { display: flex; }
       if (!list.length) delete S.held[k];
       renderCell(i);
     });
-    if (n && Object.keys(S.held).length + n > 0 && $('toast').textContent.indexOf('scorta si chiude') < 0) toast(n === 1 ? 'Il pezzo ospitato torna in fila' : `${n} pezzi ospitati tornano in fila`);
+    if (n) toast(n === 1 ? 'Il pezzo ospitato torna in fila' : `${n} pezzi ospitati tornano in fila`);
   }
   const ring8 = c => { const r = Math.floor(c / N), col = c % N, out = []; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = col + dc; if (rr >= 0 && rr < N && cc >= 0 && cc < N) out.push(rr * N + cc); } return out; };
   const dcell = (a, b) => Math.hypot(Math.floor(a / N) - Math.floor(b / N), a % N - b % N);
@@ -2546,7 +2563,6 @@ body.dev-on .dev { display: flex; }
     if (!p) { openSetup(); return; }
     noteActivity(); unpick();
     if (!slotOpen(i)) {
-      if (i === 0) { toast(`Scorta chiusa: ci vuole ${meta(3).e} ${nameOf(3)} sul tabellone`); nudgeSlot(0); return; }
       if (i === 2 && !slotOpen(1)) { toast('Prima sblocca la scorta 2'); return; }
       openShop('slot' + i); return;
     }
@@ -2715,7 +2731,7 @@ body.dev-on .dev { display: flex; }
     });
     for (let i = 1; i < 3; i++) {
       const owned = (S.extra || 0) >= i, avail = (S.extra || 0) === i - 1;
-      box.appendChild(shopRow('📦', `Scorta ${i + 1}`, 'Una casella in più per mettere da parte i pezzi, per questa scalata. (La prima casella c\'è finché hai una Capanna sul tabellone.)',
+      box.appendChild(shopRow('📦', `Scorta ${i + 1}`, 'Una casella in più per mettere da parte i pezzi, per questa scalata.',
         owned ? 'Già sbloccata' : avail ? '' : 'Prima sblocca la scorta 2',
         owned || !avail ? null : SLOT_PRICES[i], () => { S.extra = i; }, 'slot' + i));
     }
@@ -3698,7 +3714,7 @@ body.dev-on .dev { display: flex; }
     function intro() {
       const t = tut(); if (!t || t.intro) return;
       const steps = [
-        { id: 'i1', emoji: '👆', title: 'Il prossimo pezzo', text: 'In alto c\'è il pezzo da appoggiare, con il suo nome: lo puoi anche trascinare sul tabellone. Accanto la scorta, per mettere da parte un pezzo: la prima casella si apre quando hai una Capanna sul tabellone, le altre si comprano. A destra le monete, i punti e il tuo record.', target: () => document.querySelector('.top') },
+        { id: 'i1', emoji: '👆', title: 'Il prossimo pezzo', text: 'In alto c\'è il pezzo da appoggiare, con il suo nome: lo puoi anche trascinare sul tabellone. Accanto la scorta, per mettere da parte un pezzo e riprenderlo quando serve (la seconda e la terza casella si comprano). A destra le monete, i punti e il tuo record.', target: () => document.querySelector('.top') },
         { id: 'i2', emoji: '🧩', title: 'Il tabellone', text: 'Tocca una casella vuota per appoggiare il pezzo. Tre pezzi uguali che si toccano (sopra, sotto, destra, sinistra) si fondono nel pezzo successivo. Tieni il dito su una casella per vedere prima cosa succede.', target: () => $('wrap'), pad: 2 },
         { id: 'i3', emoji: '🪜', title: 'La scala', text: 'I 12 gradini del tema: ogni fusione sale di uno. Arrivato in cima la scalata è finita: ★ al tema, 2.000 monete e si riparte dal primo gradino.', target: () => document.querySelector('.ladder-bar') },
         { id: 'i4', emoji: '🔒', title: 'I poteri', text: 'Dado, martello, arcobaleno e calamita. All\'inizio sono bloccati: si sbloccano in ordine a 125, 250, 500 e 1.000 punti, con 3 usi ciascuno. Poi si comprano con le monete o escono dai regali.', target: () => document.querySelector('.bonus-bar') },
