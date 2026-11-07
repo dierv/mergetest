@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107231655">
+<meta name="app-version" content="20261107233810">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -174,6 +174,13 @@ body::before {
 .pc.ghost { opacity: .36; filter: saturate(.5); }
 .pc.ghost-merge { opacity: .75; filter: none; animation: breathe .9s ease-in-out infinite; }
 .cell.hl .pc, .cell.hint-pc .pc { animation: wiggle .45s ease-in-out infinite; }
+/* Anteprima completa: cosa sparisce, cosa nasce, cosa resta libero */
+.cell.will-free .pc { opacity: .3; filter: grayscale(.7); animation: none; }
+.cell.will-free::after { content: ''; position: absolute; inset: 4px; border-radius: 10px; border: 2px dashed rgba(255, 255, 255, .55); pointer-events: none; }
+.cell.will-new .pc { filter: brightness(1.12) saturate(1.15); }
+.cell .res { position: absolute; left: 2px; bottom: 2px; z-index: 4; width: calc(var(--cs, 56px) * .42); height: calc(var(--cs, 56px) * .42); border-radius: 50%; background: #fffdf6; border: 2px solid var(--accent); font: calc(var(--cs, 56px) * .26)/1 var(--emoji); display: grid; place-items: center; pointer-events: none; box-shadow: 0 2px 6px rgba(0, 0, 0, .3); animation: breathe .9s ease-in-out infinite; }
+.cell .res.sm { width: calc(var(--cs, 56px) * .34); height: calc(var(--cs, 56px) * .34); font-size: calc(var(--cs, 56px) * .2); }
+.cell.abil-ring { box-shadow: inset 0 0 0 2px rgba(255, 220, 120, .35); }
 .cell.hint-pc .pc { animation-iteration-count: 4; }
 .cell.smash-aim .pc { outline: 3px solid var(--danger); outline-offset: -1px; }
 .pc.drop { animation: drop .36s cubic-bezier(.3, .8, .4, 1) both; }
@@ -201,7 +208,7 @@ body::before {
 /* Finestrella dei depositi: i pezzi dentro e il posto libero */
 .hpop { position: fixed; z-index: 60; display: flex; gap: 6px; padding: 7px; border-radius: 14px; background: #fffdf6; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
 .hpop[hidden] { display: none; }
-.hpop button { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #c9a35a; background: #fff; font: 26px/1 var(--emoji); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.hpop button { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #c9a35a; background: #fff; font: 26px/1 var(--emoji); display: grid; place-items: center; cursor: grab; padding: 0; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .hpop button.plus { border-style: dashed; color: #8a7a3a; font: 800 26px/1 inherit; }
 .hpop button:active { transform: scale(.94); }
 .hpop .hpl { position: absolute; top: -9px; left: 10px; font-size: 11px; font-weight: 800; color: #6b6e86; background: #fffdf6; padding: 0 5px; border-radius: 6px; }
@@ -883,7 +890,7 @@ body.dev-on .dev { display: flex; }
         </ul>
       </li>
       <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La seconda e la terza casella si comprano con le monete e valgono solo per la scalata in corso.</li>
-      <li><b>Depositi</b> (🛖 1 posto, 🏡 2, 🏘️ 3): tengono da parte i pezzi in arrivo. Trascina il "Prossimo" sull'edificio per metterlo dentro, oppure tocca l'edificio: si apre la finestrella con i pezzi dentro e il posto libero (+). Toccando un pezzo dentro lo scambi con quello in mano. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila (l'anteprima li fa lampeggiare).</li>
+      <li><b>Depositi</b> (🛖 1 posto, 🏡 2, 🏘️ 3): tengono da parte i pezzi in arrivo. Trascina il "Prossimo" sull'edificio per metterlo dentro, oppure tocca l'edificio: si apre la finestrella con i pezzi dentro e il posto libero (+). Toccando un pezzo dentro lo scambi con quello in mano; trascinandolo fuori (dall'edificio o dalla finestrella) lo appoggi su una casella vuota, oppure sul "Prossimo" per riprenderlo in mano: così il deposito si libera. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila (l'anteprima li fa lampeggiare).</li>
       <li><b>Abilità da usare</b>: Trapianto, Arrocco, Urbanistica, Gravità, Fusione stellare e Costellazione valgono una volta per pezzo: il bollino in alto a destra dice che è ancora disponibile. Tocca il pezzo, poi il bersaglio evidenziato. Il Germoglio si trascina anche su una casella vuota.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
@@ -996,7 +1003,7 @@ body.dev-on .dev { display: flex; }
     ['Trapianto', 'toccalo e poi una casella vuota (o trascinalo): si sposta lì. Una volta sola per Germoglio (↔️ = ancora trapiantabile). Conta come una mossa.'],
     ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
     ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
-    ['Rifugio', 'tiene da parte 1 pezzo in arrivo: trascinaci sopra il "Prossimo" (o toccala e poi +). Toccando il pezzo dentro lo scambi con quello che hai in mano.'],
+    ['Rifugio', 'tiene da parte 1 pezzo in arrivo: trascinaci sopra il "Prossimo" (o toccala e poi +). Toccando il pezzo dentro lo scambi con quello in mano; trascinandolo fuori lo appoggi su una casella vuota (o sul "Prossimo" per riprenderlo) e il Rifugio si libera.'],
     ['Dispensa', 'come il Rifugio, con 2 posti. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila.'],
     ['Magazzino', 'come la Dispensa, con 3 posti.'],
     ['Arrocco', 'toccalo e poi un pezzo nella sua stessa riga o colonna: si scambiano di posto, anche se in mezzo ci sono altri pezzi. Una volta per Castello (♜); se nascono tris, si fondono.'],
@@ -1285,6 +1292,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
         if (!S || busy || S.over || S.done || !me() || armed || celebrating()) return null;
         const v = S.grid[i];
         if (v === 0 && S.spent[i] !== 0) return { kind: 'sprout', from: i, piece: 0 };
+        if (HOST[v] && S.held[i] && S.held[i].length) return { kind: 'house', from: i, k: 0, piece: S.held[i][0] };
         return null;
       });
     });
@@ -1345,7 +1353,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       if (v === 10) { const n = S.grid.filter(x => x === 9).length; if (n < 3) { txt = `${n}/3`; cls += ' dim'; } else cls += ' ready'; }
       const k = el('span', cls, txt); k.title = `${ABIL[v][0]} disponibile`; c.appendChild(k);
     }
-    c.classList.toggle('can-drag', v === 0 && !(S.spent && S.spent[i] === 0));
+    c.classList.toggle('can-drag', (v === 0 && !(S.spent && S.spent[i] === 0)) || !!(HOST[v] && h && h.length));
     if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'regalo, tocca per aprirlo' : nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
   }
@@ -1799,14 +1807,57 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
 
   /* ---------- Anteprima e suggerimenti ---------- */
   function clearPreview() {
-    boardEl.querySelectorAll('.hl, .aim, .smash-aim, .spill').forEach(x => x.classList.remove('hl', 'aim', 'smash-aim', 'spill'));
-    boardEl.querySelectorAll('.ghost').forEach(x => x.remove());
+    boardEl.querySelectorAll('.hl, .aim, .smash-aim, .spill, .will-free, .will-new').forEach(x => x.classList.remove('hl', 'aim', 'smash-aim', 'spill', 'will-free', 'will-new'));
+    boardEl.querySelectorAll('.ghost, .res').forEach(x => x.remove());
+  }
+  /* Segna sul tabellone l'esito di un'ipotesi: caselle che si liberano (tratteggio) e pezzi che nascono (bollino col risultato). */
+  function markOutcome(g0, g1, except) {
+    for (let j = 0; j < SIZE; j++) {
+      if (j === except) continue;
+      if (g0[j] >= 0 && g1[j] === EMPTY) cells[j].classList.add('will-free');
+      else if (g1[j] >= 0 && g1[j] !== g0[j]) { cells[j].classList.add('will-new'); const r = el('span', 'res sm', meta(g1[j]).e); cells[j].appendChild(r); }
+    }
+  }
+  /* Catene di fusione a partire da una casella già occupata, su una copia della griglia */
+  function chainAt(g, idx) { const L = g[idx]; if (L < 0) return g; const g2 = g.slice(); g2[idx] = EMPTY; const sm = simulate(g2, idx, L); return sm.steps.length ? sm.g : g; }
+  /* Esito ipotetico di un'abilità armata sul bersaglio i (griglia finale), o null */
+  function planAbility(i) {
+    if (!abil || !abil.targets.has(i)) return null;
+    const g = S.grid.slice(), src = abil.src;
+    if (abil.kind === 'castle' || abil.kind === 'urban') {
+      const a = abil.kind === 'castle' ? src : abil.a; if (a === null || a === i) return null;
+      [g[a], g[i]] = [g[i], g[a]];
+      let g2 = chainAt(g, a); g2 = chainAt(g2, i); return g2;
+    }
+    if (abil.kind === 'planet') {
+      const grp = ringGroups(src).find(x => x.includes(i)); if (!grp) return null;
+      const L = g[i], n = grp.length, make = makeOf(n), left = n - usedOf(make);
+      const sorted = grp.slice().sort((x, y) => (x === i ? -1 : y === i ? 1 : dcell(x, i) - dcell(y, i)));
+      grp.forEach(j => { g[j] = EMPTY; }); sorted.slice(0, make).forEach(j => { g[j] = L + 1; }); sorted.slice(make, make + left).forEach(j => { g[j] = L; });
+      let g2 = g; sorted.slice(0, make).forEach(j => { g2 = chainAt(g2, j); }); return g2;
+    }
+    if (abil.kind === 'star') {
+      const pair = ringPairs(src).find(x => x.includes(i)); if (!pair) return null;
+      const u = pair.filter(j => j !== i).sort((x, y) => dcell(x, i) - dcell(y, i))[0], L = g[i];
+      g[u] = EMPTY; g[i] = L + 1; return chainAt(g, i);
+    }
+    if (abil.kind === 'galaxy') {
+      const stars = starsOnBoard(); if (stars.length < 3 || !stars.includes(i)) return null;
+      stars.filter(j => j !== i).sort((x, y) => dcell(x, i) - dcell(y, i)).slice(0, 2).forEach(j => { g[j] = EMPTY; }); g[i] = 10; return chainAt(g, i);
+    }
+    return null;
   }
   function preview(i) {
     clearPreview(); clearHint();
     if (busy || !S || S.over || S.done) return;
     const c = cells[i];
     if (armed === 'hammer') { if (S.grid[i] >= 0) c.classList.add('smash-aim'); return; }
+    if (abil !== null && S.grid[i] !== EMPTY) {
+      const g1 = planAbility(i); if (!g1) return;
+      c.classList.add('aim'); markOutcome(S.grid, g1, -1);
+      if (g1[i] === S.grid[i]) { cells[i].classList.remove('will-new'); const r = cells[i].querySelector('.res'); if (r) r.remove(); }
+      return;
+    }
     if (S.grid[i] !== EMPTY) return;
     if (picked !== null) { c.classList.add('aim'); return; }
     const L = armed === 'rainbow' || S.cur === JOLLY ? jollyLevel(S.grid, i) : S.cur;
@@ -1818,6 +1869,11 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     });
     c.classList.add('aim');
     c.appendChild(pieceEl((armed === 'rainbow' || S.cur === JOLLY) ? JOLLY : S.cur, 'ghost' + (sim.steps.length ? ' ghost-merge' : '')));
+    if (sim.steps.length) {
+      /* esito completo: caselle che si liberano, pezzi che nascono (anche il secondo di un 5→2), il risultato finale nella casella toccata */
+      markOutcome(S.grid, sim.g, i);
+      c.appendChild(el('span', 'res', meta(sim.final).e));
+    }
   }
   function clearHint() { boardEl.querySelectorAll('.hint, .hint-pc').forEach(x => x.classList.remove('hint', 'hint-pc')); }
   function noteActivity() {
@@ -2080,6 +2136,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     for (let i = 0; i < SIZE; i++) {
       const pcs = [...cells[i].querySelectorAll('.pc:not(.ghost)')], has = S.grid[i] !== EMPTY;
       if (!has) { if (pcs.length) out.push(i); continue; }
+      if (cells[i].classList.contains('will-free')) continue; /* anteprima: il pezzo è volutamente sbiadito */
       const cs = pcs.length === 1 ? getComputedStyle(pcs[0]) : null;
       if (!cs || cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) < .5) out.push(i);
     }
@@ -2117,8 +2174,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
         : m.k === 'hammer' ? `🔨 martello su ${pos(m.i)}`
         : m.k === 'move' ? `${em(m.v)} trapianto da ${pos(m.f)} a ${pos(m.i)}`
         : m.k === 'prune' ? `✂️ potatura in ${pos(m.i)}`
-        : m.k === 'house' ? `${em(m.v)} uscito dalla casa in ${pos(m.f)} e appoggiato in ${pos(m.i)}`
-        : m.k === 'in' ? `${em(m.v)} da ${pos(m.f)} entrato nella casa in ${pos(m.i)}`
+        : m.k === 'house' ? `${em(m.v)} uscito dal deposito in ${pos(m.f)} e appoggiato in ${pos(m.i)}`
         : m.k === 'castle' ? `♜ arrocco: ${pos(m.f)} ⇄ ${pos(m.i)}`
         : m.k === 'urban' ? `🏗️ urbanistica: ${pos(m.f)} ⇄ ${pos(m.i)}`
         : m.k === 'gravity' ? `🌀 gravità in ${pos(m.i)}`
@@ -2169,7 +2225,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
   function unpick() {
     if (picked !== null) { cells[picked].classList.remove('picked'); picked = null; }
     if (pruneArm !== null) { cells[pruneArm].classList.remove('prune-arm'); pruneArm = null; }
-    if (abil !== null) { cells.forEach(c => c.classList.remove('abil-src', 'abil-target', 'abil-a')); abil = null; }
+    if (abil !== null) { cells.forEach(c => c.classList.remove('abil-src', 'abil-target', 'abil-a', 'abil-ring')); abil = null; clearPreview(); }
     closeHousePop();
   }
   async function place(idx, viaDrag) {
@@ -2178,6 +2234,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     if (!p) { openSetup(); return; }
     noteActivity();
     if (!viaDrag && Date.now() - dragEndAt < 600) return; /* rilascio di un trascinamento: niente tocco */
+    clearPreview();
     if (healBoard()) { toast('Alcuni pezzi non si vedevano: ora sono al loro posto. Riprova.'); return; }
     if (devBrush !== null) { devPaint(idx, devBrush); return; }
     if (S.grid[idx] === CHEST) { unpick(); openBoardChest(idx); return; }
@@ -2267,12 +2324,15 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       const room = HOST[v] && (S.held[i] || []).length < HOST[v];
       if (drag.kind === 'next') return (v === EMPTY || room) ? cell : null;
       if (i === drag.from) return null;
-      return v === EMPTY ? cell : null; /* germoglio: trapianto */
+      return v === EMPTY ? cell : null; /* germoglio: trapianto; pezzo che esce da un deposito: appoggio */
     }
+    const slot = elm.closest('.slot');
+    if (slot && drag.kind === 'house') return $('nextTile'); /* pezzo che esce da un deposito: torna in mano */
     return null;
   }
   async function dropOnto(d, t) {
     if (!S || busy) return;
+    if (t === $('nextTile')) { if (d.kind === 'house') hostRetrieve(d.from, d.k); return; }
     const i = cells.indexOf(t); if (i < 0) return;
     noteActivity();
     if (d.kind === 'next') {
@@ -2281,6 +2341,26 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       return;
     }
     if (d.kind === 'sprout') { await moveSprout(d.from, i); return; }
+    if (d.kind === 'house') { await hostPlace(d.from, d.k, i); return; }
+  }
+  /* Un pezzo esce dal deposito trascinato su una casella vuota: lo appoggi (è una mossa, la mano non cambia) e il deposito si libera. */
+  async function hostPlace(from, k, to) {
+    const list = S.held[from]; if (!list || k >= list.length || busy || S.grid[to] !== EMPTY) return false;
+    saveUndo(); closeHousePop(); cells[from].classList.remove('abil-src');
+    const piece = list.splice(k, 1)[0]; if (!list.length) delete S.held[from];
+    renderCell(from);
+    const rainbow = piece === JOLLY, L = rainbow ? jollyLevel(S.grid, to) : piece;
+    await dropPiece(to, L, { rainbow, keepNext: true, noUndo: true, kind: 'house', from });
+    return true;
+  }
+  /* Un pezzo esce dal deposito trascinato sul "Prossimo": torna in mano, quello che avevi si mette in fila. */
+  function hostRetrieve(from, k) {
+    const list = S.held[from]; if (!list || k >= list.length || busy) return false;
+    saveUndo(); closeHousePop(); cells[from].classList.remove('abil-src');
+    S.queue.unshift(S.cur); S.cur = list.splice(k, 1)[0]; if (!list.length) delete S.held[from];
+    sfx('swap'); buzz(8);
+    toast(`${meta(S.cur).e} in mano: ${meta(S.queue[0]).e} viene subito dopo`);
+    renderCell(from); afterMove(true); return true;
   }
   $('nextTile').addEventListener('pointerdown', e => {
     noteActivity();
@@ -2329,6 +2409,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     if (!t || !Array.isArray(t)) { nudge(idx); toast(t && t.why ? t.why : 'Niente da fare'); return; }
     abil = { kind: ABIL_KIND[v], src: idx, a: null, targets: new Set(t) };
     cells[idx].classList.add('abil-src'); t.forEach(i => cells[i].classList.add('abil-target'));
+    if (v === 8 || v === 9) ring8(idx).forEach(i => cells[i].classList.add('abil-ring'));
     const msg = { castle: 'Arrocco: tocca il pezzo con cui scambiare il Castello', urban: 'Urbanistica: tocca il primo dei due pezzi da scambiare', planet: 'Gravità: tocca il pezzo del gruppo dove far nascere il risultato', star: 'Fusione stellare: tocca uno dei due pezzi uguali', galaxy: 'Costellazione: tocca la Stella dove far nascere la Galassia' }[abil.kind];
     toast(msg); sfx('tap');
   }
@@ -2473,7 +2554,11 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     $('hpopLab').textContent = `${nameOf(v)} ${list.length}/${cap}`;
     for (let k = 0; k < cap; k++) {
       const b = el('button');
-      if (k < list.length) { b.textContent = meta(list[k]).e; b.title = `Scambia ${meta(list[k]).e} con ${meta(S.cur).e} in mano`; b.addEventListener('click', e => { e.stopPropagation(); hostSwap(idx, k); }); }
+      if (k < list.length) {
+        b.textContent = meta(list[k]).e; b.title = `Tocca: scambia con ${meta(S.cur).e} in mano · Trascina: portalo fuori`; b.className = 'can-drag';
+        b.addEventListener('click', e => { e.stopPropagation(); if (Date.now() - dragEndAt < 600) return; hostSwap(idx, k); });
+        b.addEventListener('pointerdown', e => dragArm(e, b, () => (busy || !S.held[idx] || k >= S.held[idx].length) ? null : { kind: 'house', from: idx, k, piece: S.held[idx][k] }));
+      }
       else { b.className = 'plus'; b.textContent = '+'; b.title = `Metti dentro ${meta(S.cur).e}`; b.addEventListener('click', e => { e.stopPropagation(); hostPut(idx); }); }
       h.appendChild(b);
     }
@@ -3991,7 +4076,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
   })();
 
   /* Solo per i test automatici (?debug=1): stato interno in sola lettura */
-  if (/[?&]debug=1/.test(location.search)) window.__seme = () => ({ busy, S: JSON.parse(JSON.stringify(S)), armed, picked });
+  if (/[?&]debug=1/.test(location.search)) window.__seme = () => ({ busy, S: JSON.parse(JSON.stringify(S)), armed, picked, drag: drag ? { kind: drag.kind, on: drag.on, from: drag.from } : null, abil: abil ? abil.kind : null });
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, prev, P }));
   if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
   else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
