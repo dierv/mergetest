@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107225729">
+<meta name="app-version" content="20261107231655">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -188,6 +188,23 @@ body::before {
 .cell .pc.chest { animation: chestBob 1.5s ease-in-out infinite; transform-origin: 50% 85%; box-shadow: inset 0 -4px 0 var(--edge), 0 0 0 3px rgba(226, 178, 44, .35), 0 4px 12px rgba(20, 20, 40, .2); }
 .cell .pc.chest.drop { animation: drop .36s cubic-bezier(.3, .8, .4, 1) both, chestBob 1.5s ease-in-out .4s infinite; }
 .cell .holds { position: absolute; right: 2px; top: 0; bottom: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; gap: 2px; pointer-events: none; }
+.cell .hold.empty { background: rgba(255, 255, 255, .35); border-style: dashed; }
+.cell.spill .hold:not(.empty) { animation: spill .5s ease-in-out infinite alternate; border-color: #e2651c; }
+@keyframes spill { from { transform: scale(1); } to { transform: scale(1.18); box-shadow: 0 0 0 3px rgba(255, 120, 40, .5); } }
+.cell.abil-src { outline: 3px solid var(--accent); outline-offset: -3px; }
+.cell.abil-src .pc { animation: bob .8s ease-in-out infinite; }
+.cell.abil-target { box-shadow: inset 0 0 0 1px var(--panel-line), 0 0 0 3px rgba(255, 200, 80, .55); }
+.cell.abil-a { outline: 3px dashed var(--accent); outline-offset: -3px; }
+.cell .smk.ready { border-color: #e2921c; box-shadow: 0 0 0 2px rgba(255, 190, 70, .6); }
+.cell .smk.dim { opacity: .55; animation: none; font-size: calc(var(--cs, 56px) * .16); font-weight: 800; font-family: inherit; color: #333; }
+.pc.slide { position: absolute; z-index: 9; transition: transform .3s cubic-bezier(.4, .1, .3, 1); pointer-events: none; }
+/* Finestrella dei depositi: i pezzi dentro e il posto libero */
+.hpop { position: fixed; z-index: 60; display: flex; gap: 6px; padding: 7px; border-radius: 14px; background: #fffdf6; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.hpop[hidden] { display: none; }
+.hpop button { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #c9a35a; background: #fff; font: 26px/1 var(--emoji); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.hpop button.plus { border-style: dashed; color: #8a7a3a; font: 800 26px/1 inherit; }
+.hpop button:active { transform: scale(.94); }
+.hpop .hpl { position: absolute; top: -9px; left: 10px; font-size: 11px; font-weight: 800; color: #6b6e86; background: #fffdf6; padding: 0 5px; border-radius: 6px; }
 .cell .hold { width: calc(var(--cs, 56px) * .29); height: calc(var(--cs, 56px) * .29); border-radius: 50%; background: #fff; border: 1.5px solid #c9a35a; font: calc(var(--cs, 56px) * .17)/1 var(--emoji); color: #222; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 .cell .hold.first { border-color: #e2921c; box-shadow: 0 0 0 2px rgba(255, 190, 70, .55), 0 1px 3px rgba(0,0,0,.25); }
 .cell .smk { position: absolute; right: 2px; top: 2px; z-index: 3; width: calc(var(--cs, 56px) * .3); height: calc(var(--cs, 56px) * .3); border-radius: 50%; background: rgba(255, 255, 255, .92); border: 1.5px solid #9aa4b8; font: calc(var(--cs, 56px) * .18)/1 var(--emoji); display: grid; place-items: center; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); animation: smoke 2.4s ease-in-out infinite; }
@@ -205,9 +222,6 @@ body.dragging .toast { display: none; }
 .cell.picked { outline: 3px solid var(--accent); outline-offset: -3px; }
 .cell.picked .pc { animation: bob .8s ease-in-out infinite; }
 .cell.prune-arm { outline: 3px dashed var(--accent); outline-offset: -3px; }
-.cell.barter-arm { outline: 3px solid var(--accent); outline-offset: -3px; }
-.cell.barter-arm .pc { animation: bob .8s ease-in-out infinite; }
-body.barter .cell.can-drag:not(.barter-arm) { box-shadow: inset 0 0 0 1px var(--panel-line), 0 0 0 3px rgba(255, 200, 80, .45); }
 .pc.roll { animation: roll .55s cubic-bezier(.2, .9, .3, 1) both; transform-origin: 50% 50%; }
 .slot-tile.huge .pc.deal { animation: deal .42s cubic-bezier(.2, .9, .3, 1) both, bob 2.4s ease-in-out .6s infinite; }
 .slot-tile .pc.pop::after, .stash-slot .pc.pop::after { display: none; }
@@ -250,7 +264,7 @@ body.barter .cell.can-drag:not(.barter-arm) { box-shadow: inset 0 0 0 1px var(--
 /* Celebration */
 .celebrate { position: fixed; inset: 0; z-index: 24; display: grid; place-items: center; pointer-events: none; visibility: hidden; padding: 16px; }
 .celebrate > * { grid-area: 1 / 1; }
-.celebrate.show { visibility: visible; animation: celeFade var(--cele-t, 1.8s) ease forwards; }
+.celebrate.show { visibility: visible; pointer-events: auto; animation: celeFade var(--cele-t, 1.8s) ease forwards; }
 .cele-rays {
   width: 340px; height: 340px; border-radius: 50%;
   background: repeating-conic-gradient(from 0deg, rgba(255, 214, 102, .6) 0deg 9deg, transparent 9deg 24deg);
@@ -741,6 +755,8 @@ body.dev-on .dev { display: flex; }
   </div>
 </div>
 
+<div id="hpop" class="hpop" hidden role="dialog" aria-label="Contenuto del deposito"><span class="hpl" id="hpopLab"></span></div>
+
 <aside id="dev" class="dev" aria-label="Strumenti di sviluppo">
   <h3>Dev</h3>
   <div class="dev-hint">Trascina un pezzo sul tabellone o sul "Prossimo", oppure toccalo e poi tocca le caselle.</div>
@@ -867,7 +883,8 @@ body.dev-on .dev { display: flex; }
         </ul>
       </li>
       <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La seconda e la terza casella si comprano con le monete e valgono solo per la scalata in corso.</li>
-      <li><b>Trascinare</b>: il pezzo "Prossimo" si può trascinare su una casella vuota o dentro una Casa/Borgo; anche i pezzi già sul tabellone si possono trascinare dentro una Casa/Borgo (è una mossa). Da una Casa/Borgo il pezzo si trascina fuori su una casella vuota (lo appoggi, è una mossa) o sul "Prossimo" (torna in mano, quello che avevi si mette in fila). Il Germoglio si trascina anche su una casella vuota.</li>
+      <li><b>Depositi</b> (🛖 1 posto, 🏡 2, 🏘️ 3): tengono da parte i pezzi in arrivo. Trascina il "Prossimo" sull'edificio per metterlo dentro, oppure tocca l'edificio: si apre la finestrella con i pezzi dentro e il posto libero (+). Toccando un pezzo dentro lo scambi con quello in mano. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila (l'anteprima li fa lampeggiare).</li>
+      <li><b>Abilità da usare</b>: Trapianto, Arrocco, Urbanistica, Gravità, Fusione stellare e Costellazione valgono una volta per pezzo: il bollino in alto a destra dice che è ancora disponibile. Tocca il pezzo, poi il bersaglio evidenziato. Il Germoglio si trascina anche su una casella vuota.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
       <li><b>Album e temi</b>: ogni gradino raggiunto per la prima volta in un tema ti dà un pezzo del suo puzzle. Con 8 pezzi si sblocca il tema successivo.</li>
@@ -976,20 +993,21 @@ body.dev-on .dev { display: flex; }
   const SPECIAL = { [JOLLY]: ['🌈', 'Arcobaleno', '#ffffff', '#d6b4ef'], [CHEST]: ['🎁', 'Regalo', '#fff3c4', '#e2b22c'] };
   /* Abilità dei 12 pezzi (per indice di gradino, uguali in tutti i temi). */
   const ABIL = [
-    ['Trapianto', 'toccalo e poi una casella vuota per spostarlo. Conta come una mossa, il prossimo pezzo resta in mano.'],
-    ['Potatura', 'toccalo due volte e torna al primo gradino. Serve quando ti manca il terzo pezzo piccolo. Conta come una mossa.'],
-    ['Vedetta', 'finché ce n\'è uno sul tabellone vedi anche il pezzo dopo il prossimo.'],
-    ['Segnale di fumo', 'toccala e il fumo chiama un altro pezzo: il prossimo cambia. Vale una volta per ogni Capanna (💨 = fuoco acceso); poi il fuoco è spento.'],
-    ['Ospita 1', 'trascinaci sopra il prossimo pezzo, o un pezzo del tabellone, per metterlo dentro. Per tirarlo fuori trascinalo dalla casa su una casella vuota (lo appoggi) o sul "Prossimo" (torna in mano).'],
-    ['Ospita 3', 'come la precedente, ma con 3 posti. Esce per primo il pezzo con il bollino arancione; toccando la casa cambi l\'ordine.'],
-    ['Tesoro', 'quando lo costruisci, un regalo 🎁 compare in una casella liberata dalla fusione.'],
-    ['Baratto', 'toccala e poi un pezzo del tabellone: lo scambi con quello che hai in mano. Vale una volta per ogni Metropoli (🤝 = baratto disponibile); se il pezzo scambiato fa un tris, si fonde.'],
-    ['Gravità', 'quando lo crei, i pezzi uguali tra loro nelle 8 caselle intorno si fondono anche se non si toccano.'],
-    ['Arcobaleno', 'quando lo crei, la sua luce trasforma il prossimo pezzo in un Arcobaleno; quello che avevi arriva dopo.'],
-    ['Risucchio', 'quando lo crei, inghiotte i pezzi nelle 8 caselle intorno, qualunque siano.'],
-    ['Cima', 'chiude la scalata: ★ al tema, 2.000 monete, si riparte dal primo gradino.']
+    ['Trapianto', 'toccalo e poi una casella vuota (o trascinalo): si sposta lì. Una volta sola per Germoglio (↔️ = ancora trapiantabile). Conta come una mossa.'],
+    ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
+    ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
+    ['Rifugio', 'tiene da parte 1 pezzo in arrivo: trascinaci sopra il "Prossimo" (o toccala e poi +). Toccando il pezzo dentro lo scambi con quello che hai in mano.'],
+    ['Dispensa', 'come il Rifugio, con 2 posti. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila.'],
+    ['Magazzino', 'come la Dispensa, con 3 posti.'],
+    ['Arrocco', 'toccalo e poi un pezzo nella sua stessa riga o colonna: si scambiano di posto, anche se in mezzo ci sono altri pezzi. Una volta per Castello (♜); se nascono tris, si fondono.'],
+    ['Urbanistica', 'toccala e poi due pezzi qualsiasi del tabellone: si scambiano di posto. Una volta per Metropoli (🏗️); se nascono tris, si fondono.'],
+    ['Gravità', 'toccalo e poi un pezzo di un gruppo di almeno 3 uguali nelle 8 caselle intorno: si fondono lì anche se non si toccano, con la tabella delle fusioni. Una volta per Pianeta (🌀).'],
+    ['Fusione stellare', 'toccala e poi uno di due pezzi uguali nelle 8 caselle intorno, più bassi della Stella: si fondono in due invece che in tre. Una volta per Stella (✨).'],
+    ['Costellazione', 'toccala e poi una Stella: tre Stelle, ovunque siano sul tabellone, si riuniscono lì in una Galassia. Una volta per Galassia (il bollino conta le Stelle).'],
+    ['Cima', 'chiude la scalata: ★ al tema, 2.000 monete e si riparte dal primo gradino.']
   ];
-  const HOST = { 4: 1, 5: 3 }; /* quanti pezzi ospitano Casa e Borgo */
+  const HOST = { 3: 1, 4: 2, 5: 3 }; /* depositi: Capanna 1, Casa 2, Borgo 3 posti */
+const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: '✦' }; /* abilità da usare una volta per pezzo: bollino finché è disponibile */ /* quanti pezzi ospitano Casa e Borgo */
   const UNLOCK_ORDER = ['dice', 'hammer', 'rainbow', 'magnet'], UNLOCK_AT = { dice: 125, hammer: 250, rainbow: 500, magnet: 1000 };
   const unlocked = (p, k) => !!(p && Array.isArray(p.unl) && p.unl.includes(k));
   const SKIES = [
@@ -1264,11 +1282,9 @@ body.dev-on .dev { display: flex; }
       noteActivity();
       if (e.pointerType !== 'mouse') { pressIdx = i; preview(i); }
       dragArm(e, b, () => {
-        if (!S || busy || S.over || S.done || !me() || armed) return null;
+        if (!S || busy || S.over || S.done || !me() || armed || celebrating()) return null;
         const v = S.grid[i];
-        if (v === 0) return { kind: 'sprout', from: i, piece: 0 };
-        if (HOST[v] && S.held[i] && S.held[i].length) return { kind: 'house', from: i, piece: S.held[i][0] };
-        if (v >= 0) return { kind: 'piece', from: i, piece: v };
+        if (v === 0 && S.spent[i] !== 0) return { kind: 'sprout', from: i, piece: 0 };
         return null;
       });
     });
@@ -1319,13 +1335,17 @@ body.dev-on .dev { display: flex; }
     c.querySelectorAll('.pc, .holds, .smk').forEach(x => x.remove());
     const v = S.grid[i], r = Math.floor(i / N) + 1, col = i % N + 1;
     const h = S.held && S.held[i];
-    if (HOST[v] && h && h.length) {
-      const box = el('span', 'holds'); box.title = `Ospita: ${h.map(x => meta(x).e).join(' ')} (esce prima ${meta(h[0]).e})`;
-      h.forEach((x, k) => box.appendChild(el('span', 'hold' + (k === 0 ? ' first' : ''), meta(x).e)));
+    if (HOST[v]) {
+      const list = h || [], box = el('span', 'holds'); box.title = list.length ? `Dentro: ${list.map(x => meta(x).e).join(' ')} (${list.length}/${HOST[v]})` : `Vuoto (${HOST[v]} post${HOST[v] === 1 ? 'o' : 'i'})`;
+      for (let k = 0; k < HOST[v]; k++) box.appendChild(k < list.length ? el('span', 'hold', meta(list[k]).e) : el('span', 'hold empty', ''));
       c.appendChild(box);
     }
-    if ((v === 3 || v === 7) && !(S.spent && S.spent[i] === v)) { const k = el('span', 'smk', v === 3 ? '💨' : '🤝'); k.title = v === 3 ? 'Fuoco acceso: tocca per il segnale di fumo' : 'Baratto disponibile: tocca e poi un pezzo del tabellone'; c.appendChild(k); }
-    c.classList.toggle('can-drag', v >= 0);
+    if (ONESHOT[v] !== undefined && !(S.spent && S.spent[i] === v)) {
+      let txt = ONESHOT[v], cls = 'smk';
+      if (v === 10) { const n = S.grid.filter(x => x === 9).length; if (n < 3) { txt = `${n}/3`; cls += ' dim'; } else cls += ' ready'; }
+      const k = el('span', cls, txt); k.title = `${ABIL[v][0]} disponibile`; c.appendChild(k);
+    }
+    c.classList.toggle('can-drag', v === 0 && !(S.spent && S.spent[i] === 0));
     if (v !== EMPTY) { c.appendChild(settle(pieceEl(v, anim, delay))); c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: ${v === CHEST ? 'regalo, tocca per aprirlo' : nameOf(v)}`); }
     else c.setAttribute('aria-label', `Riga ${r}, colonna ${col}: vuota`);
   }
@@ -1454,7 +1474,7 @@ body.dev-on .dev { display: flex; }
     ov.hidden = false;
   }
   function renderAll(anim) {
-    sizeCells(); ensureLookahead();
+    sizeCells();
     for (let i = 0; i < SIZE; i++) renderCell(i, anim, anim === 'drop' ? Math.floor(i / N) * 45 + (i % N) * 15 : 0);
     updateOver();
     renderHand(); renderScore(); renderTop(); renderBonus(); renderLadder(); renderRanks(); setSky(); showOver(); renderMissBadge();
@@ -1760,6 +1780,9 @@ body.dev-on .dev { display: flex; }
     clearTimeout(celeTimer); celeTimer = setTimeout(() => box.classList.remove('show'), dur * 1000 + 50);
   }
   const celebrating = () => $('celebrate').classList.contains('show');
+  /* Un tocco sulla festa la chiude; il tabellone sotto non riceve il tocco (richiesta dell'utente). */
+  $('celebrate').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); });
+  $('celebrate').addEventListener('click', e => { e.stopPropagation(); clearTimeout(celeTimer); $('celebrate').classList.remove('show'); });
   function toast(msg) {
     toastEl.textContent = msg; toastEl.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1900);
@@ -1776,7 +1799,7 @@ body.dev-on .dev { display: flex; }
 
   /* ---------- Anteprima e suggerimenti ---------- */
   function clearPreview() {
-    boardEl.querySelectorAll('.hl, .aim, .smash-aim').forEach(x => x.classList.remove('hl', 'aim', 'smash-aim'));
+    boardEl.querySelectorAll('.hl, .aim, .smash-aim, .spill').forEach(x => x.classList.remove('hl', 'aim', 'smash-aim', 'spill'));
     boardEl.querySelectorAll('.ghost').forEach(x => x.remove());
   }
   function preview(i) {
@@ -1788,7 +1811,11 @@ body.dev-on .dev { display: flex; }
     if (picked !== null) { c.classList.add('aim'); return; }
     const L = armed === 'rainbow' || S.cur === JOLLY ? jollyLevel(S.grid, i) : S.cur;
     const sim = simulate(S.grid, i, L);
-    sim.steps.forEach(st => st.from.forEach(j => cells[j].classList.add('hl')));
+    sim.steps.forEach(st => {
+      st.from.forEach(j => cells[j].classList.add('hl'));
+      const pool = st.from.reduce((n, j) => n + ((S.held[j] || []).length), 0);
+      if (pool) { const cap = (HOST[st.L + 1] || 0) * (1 + st.keep.length) + (HOST[st.L] || 0) * (st.stay || []).length; if (pool > cap) st.from.forEach(j => { if ((S.held[j] || []).length) cells[j].classList.add('spill'); }); }
+    });
     c.classList.add('aim');
     c.appendChild(pieceEl((armed === 'rainbow' || S.cur === JOLLY) ? JOLLY : S.cur, 'ghost' + (sim.steps.length ? ' ghost-merge' : '')));
   }
@@ -1799,7 +1826,7 @@ body.dev-on .dev { display: flex; }
   }
   function showHint() {
     const sheetOpen = document.querySelector('.sheet:not([hidden])');
-    if (busy || !S || S.over || S.done || !me() || sheetOpen || armed || picked !== null || barter !== null || coach.visible()) { idleT = setTimeout(showHint, 7000); return; }
+    if (busy || !S || S.over || S.done || !me() || sheetOpen || armed || picked !== null || abil !== null || coach.visible()) { idleT = setTimeout(showHint, 7000); return; }
     let best = null;
     for (let i = 0; i < SIZE; i++) {
       if (S.grid[i] !== EMPTY) continue;
@@ -2092,7 +2119,11 @@ body.dev-on .dev { display: flex; }
         : m.k === 'prune' ? `✂️ potatura in ${pos(m.i)}`
         : m.k === 'house' ? `${em(m.v)} uscito dalla casa in ${pos(m.f)} e appoggiato in ${pos(m.i)}`
         : m.k === 'in' ? `${em(m.v)} da ${pos(m.f)} entrato nella casa in ${pos(m.i)}`
-        : m.k === 'barter' ? `🤝 baratto dalla Metropoli in ${pos(m.f)}: ${em(m.v)} messo in ${pos(m.i)}`
+        : m.k === 'castle' ? `♜ arrocco: ${pos(m.f)} ⇄ ${pos(m.i)}`
+        : m.k === 'urban' ? `🏗️ urbanistica: ${pos(m.f)} ⇄ ${pos(m.i)}`
+        : m.k === 'gravity' ? `🌀 gravità in ${pos(m.i)}`
+        : m.k === 'starfuse' ? `✨ fusione stellare in ${pos(m.i)}`
+        : m.k === 'constellation' ? `✦ costellazione in ${pos(m.i)}`
         : `${m.k === 'rainbow' ? '🌈 arcobaleno' : em(m.v)} in ${pos(m.i)}`;
       out.push('', `#${k + 1} ${h} · ${what}`);
       if (m.b) out.push('prima:', board(m.b));
@@ -2134,14 +2165,15 @@ body.dev-on .dev { display: flex; }
     list.forEach(([cl]) => cl.remove());
   }
   /* Tocchi sul tabellone: casella vuota = appoggia (o trapianta), pezzo = abilità del pezzo, regalo = apri. */
-  let picked = null, pruneArm = null, barter = null, dragEndAt = 0, createdNow = [], handConsumed = false;
+  let picked = null, pruneArm = null, abil = null, dragEndAt = 0, createdNow = [];
   function unpick() {
     if (picked !== null) { cells[picked].classList.remove('picked'); picked = null; }
     if (pruneArm !== null) { cells[pruneArm].classList.remove('prune-arm'); pruneArm = null; }
-    if (barter !== null) { cells[barter].classList.remove('barter-arm'); barter = null; document.body.classList.remove('barter'); }
+    if (abil !== null) { cells.forEach(c => c.classList.remove('abil-src', 'abil-target', 'abil-a')); abil = null; }
+    closeHousePop();
   }
   async function place(idx, viaDrag) {
-    if (busy || !S || S.over || S.done) return;
+    if (busy || !S || S.over || S.done || celebrating()) return;
     const p = me();
     if (!p) { openSetup(); return; }
     noteActivity();
@@ -2166,8 +2198,7 @@ body.dev-on .dev { display: flex; }
     }
     if (S.grid[idx] !== EMPTY) {
       if (armed === 'rainbow') { nudge(idx); toast('Tocca una casella vuota'); return; }
-      if (barter !== null && barter !== idx && S.grid[idx] >= 0) { const m = barter; unpick(); await barterSwap(m, idx); return; }
-      if (picked !== null && picked !== idx && HOST[S.grid[idx]]) { const from = picked; unpick(); boardToHouse(from, idx); return; }
+      if (abil !== null) { await abilityTap(idx); return; }
       tapPiece(idx); return;
     }
     if (picked !== null) { const from = picked; unpick(); await moveSprout(from, idx); return; }
@@ -2236,17 +2267,12 @@ body.dev-on .dev { display: flex; }
       const room = HOST[v] && (S.held[i] || []).length < HOST[v];
       if (drag.kind === 'next') return (v === EMPTY || room) ? cell : null;
       if (i === drag.from) return null;
-      if (drag.kind === 'piece') return room ? cell : null;
-      if (drag.kind === 'sprout') return (v === EMPTY || room) ? cell : null;
-      return v === EMPTY ? cell : null; /* pezzo che esce da una casa */
+      return v === EMPTY ? cell : null; /* germoglio: trapianto */
     }
-    const slot = elm.closest('.slot');
-    if (slot && drag.kind === 'house') return $('nextTile');
     return null;
   }
   async function dropOnto(d, t) {
     if (!S || busy) return;
-    if (t === $('nextTile')) { hostRetrieve(d.from); return; }
     const i = cells.indexOf(t); if (i < 0) return;
     noteActivity();
     if (d.kind === 'next') {
@@ -2254,135 +2280,238 @@ body.dev-on .dev { display: flex; }
       if (S.grid[i] === EMPTY) { await place(i, true); return; }
       return;
     }
-    if (d.kind === 'house') { await hostPlace(d.from, i); return; }
-    if (d.kind === 'piece' || (d.kind === 'sprout' && HOST[S.grid[i]])) { boardToHouse(d.from, i); return; }
     if (d.kind === 'sprout') { await moveSprout(d.from, i); return; }
-  }
-  /* Un pezzo del tabellone entra in una Casa/Borgo (trascinato): conta come una mossa, la mano non cambia. */
-  function boardToHouse(from, to) {
-    if (!S || busy || from === to) return false;
-    const piece = S.grid[from], cap = HOST[S.grid[to]];
-    if (piece < 0 || !cap) return false;
-    const list = S.held[to] || (S.held[to] = []);
-    if (list.length >= cap) { nudge(to); toast('Non c\'è più posto'); return false; }
-    const before = S.grid.slice();
-    saveUndo(); unpick();
-    list.push(piece); S.grid[from] = EMPTY;
-    renderCell(from); renderCell(to); sfx('swap'); buzz(8);
-    S.moves++;
-    logMove({ k: 'in', i: to, f: from, v: piece, b: before, a: S.grid.slice() });
-    toast(`${meta(piece).e} entra (${list.length}/${cap})`);
-    reconcileHeld(); afterMove(false); return true;
   }
   $('nextTile').addEventListener('pointerdown', e => {
     noteActivity();
-    dragArm(e, $('nextTile'), () => (!S || busy || S.over || S.done || !me() || armed || S.cur === undefined || S.cur === null) ? null : { kind: 'next', from: null, piece: S.cur });
+    dragArm(e, $('nextTile'), () => (!S || busy || S.over || S.done || !me() || armed || celebrating() || S.cur === undefined || S.cur === null) ? null : { kind: 'next', from: null, piece: S.cur });
   });
   $('nextTile').classList.add('can-drag');
-
-  /* Abilità toccando un pezzo: Germoglio si sposta, Cespuglio si pota, Casa e Borgo ospitano. */
+  /* Abilità toccando un pezzo: Germoglio si sposta (una volta), Cespuglio e Albero si potano, i depositi si aprono, gli altri si armano. */
   function tapPiece(idx) {
     const v = S.grid[idx];
     if (picked === idx) { unpick(); return; }
     if (pruneArm !== null && pruneArm !== idx) unpick();
     if (picked !== null) unpick();
-    if (v === 0) { picked = idx; cells[idx].classList.add('picked'); toast('Trapianto: tocca una casella vuota per spostarlo'); return; }
-    if (v === 1) {
-      if (pruneArm === idx) { unpick(); prune(idx); return; }
-      pruneArm = idx; cells[idx].classList.add('prune-arm'); toast(`Potatura: tocca ancora e torna ${meta(0).e} ${nameOf(0)}`); return;
+    if (v === 0) {
+      if (S.spent[idx] === 0) { nudge(idx); toast('Questo Germoglio è già stato trapiantato'); return; }
+      picked = idx; cells[idx].classList.add('picked'); toast('Trapianto: tocca una casella vuota per spostarlo'); return;
     }
-    if (HOST[v]) { hostCycle(idx); return; }
-    if (v === 3) { smokeSignal(idx); return; }
-    if (v === 7) { barterStart(idx); return; }
+    if (v === 1 || v === 2) {
+      if (pruneArm === idx) { unpick(); prune(idx); return; }
+      pruneArm = idx; cells[idx].classList.add('prune-arm'); toast(`Potatura: tocca ancora e torna ${meta(v - 1).e} ${nameOf(v - 1)}`); return;
+    }
+    if (HOST[v]) { openHousePop(idx); return; }
+    if (ONESHOT[v] !== undefined && v > 0) { armAbility(idx); return; }
     nudge(idx);
   }
-  /* Baratto della Metropoli: tocca la Metropoli e poi un pezzo del tabellone, che si scambia con quello in mano. Una volta per Metropoli. */
-  function barterStart(idx) {
-    if (barter === idx) { unpick(); return; }
+  /* ---------- Abilità "una volta per pezzo" con bersaglio: Arrocco, Urbanistica, Gravità, Fusione stellare, Costellazione ---------- */
+  const ABIL_KIND = { 6: 'castle', 7: 'urban', 8: 'planet', 9: 'star', 10: 'galaxy' };
+  /* Bersagli possibili per il pezzo in idx (array di caselle), o null con il motivo se non ce ne sono */
+  function abilityTargets(idx) {
+    const v = S.grid[idx], g = S.grid;
+    if (v === 6) { const r = Math.floor(idx / N), c = idx % N, out = []; for (let i = 0; i < SIZE; i++) if (i !== idx && g[i] >= 0 && (Math.floor(i / N) === r || i % N === c)) out.push(i); return out.length ? out : { why: 'Nessun pezzo nella sua riga o colonna' }; }
+    if (v === 7) { const out = []; for (let i = 0; i < SIZE; i++) if (g[i] >= 0) out.push(i); return out.length > 1 ? out : { why: 'Servono almeno due pezzi sul tabellone' }; }
+    if (v === 8) { const groups = ringGroups(idx); return groups.length ? [].concat(...groups) : { why: 'Nessun gruppo di 3 pezzi uguali nelle 8 caselle intorno' }; }
+    if (v === 9) { const pairs = ringPairs(idx); return pairs.length ? [].concat(...pairs) : { why: 'Servono 2 pezzi uguali, più bassi della Stella, nelle 8 caselle intorno' }; }
+    if (v === 10) { const stars = starsOnBoard(); return stars.length >= 3 ? stars : { why: `Servono 3 Stelle sul tabellone: ce ne ${stars.length === 1 ? 'è una' : 'sono ' + stars.length}` }; }
+    return null;
+  }
+  const ringGroups = c => { const by = {}; ring8(c).forEach(j => { const v = S.grid[j]; if (v >= 0) (by[v] = by[v] || []).push(j); }); return Object.values(by).filter(a => a.length >= 3); };
+  const ringPairs = c => { const by = {}, lim = S.grid[c]; ring8(c).forEach(j => { const v = S.grid[j]; if (v >= 0 && v < lim) (by[v] = by[v] || []).push(j); }); return Object.values(by).filter(a => a.length >= 2); };
+  const starsOnBoard = () => S.grid.map((v, i) => v === 9 ? i : -1).filter(i => i >= 0);
+  function armAbility(idx) {
+    const v = S.grid[idx];
+    if (abil && abil.src === idx) { unpick(); return; }
     unpick();
-    if (S.spent[idx] === 7) { nudge(idx); toast('Baratto già fatto: questa Metropoli ha chiuso il mercato'); return; }
-    barter = idx; cells[idx].classList.add('barter-arm'); document.body.classList.add('barter');
-    toast(`Baratto: tocca il pezzo del tabellone da scambiare con ${meta(S.cur).e} ${nameOf(S.cur)}`);
+    if (S.spent[idx] === v) { nudge(idx); toast(`${ABIL[v][0]} già usata da questo pezzo`); return; }
+    const t = abilityTargets(idx);
+    if (!t || !Array.isArray(t)) { nudge(idx); toast(t && t.why ? t.why : 'Niente da fare'); return; }
+    abil = { kind: ABIL_KIND[v], src: idx, a: null, targets: new Set(t) };
+    cells[idx].classList.add('abil-src'); t.forEach(i => cells[i].classList.add('abil-target'));
+    const msg = { castle: 'Arrocco: tocca il pezzo con cui scambiare il Castello', urban: 'Urbanistica: tocca il primo dei due pezzi da scambiare', planet: 'Gravità: tocca il pezzo del gruppo dove far nascere il risultato', star: 'Fusione stellare: tocca uno dei due pezzi uguali', galaxy: 'Costellazione: tocca la Stella dove far nascere la Galassia' }[abil.kind];
+    toast(msg); sfx('tap');
   }
-  async function barterSwap(m, t) {
-    if (busy || S.grid[m] !== 7 || S.spent[m] === 7 || S.grid[t] < 0 || t === m) return;
-    const taken = S.grid[t], hand = S.cur;
-    if (taken === hand) { nudge(t); toast('È uguale a quello che hai in mano'); barterStart(m); return; }
-    saveUndo();
-    S.spent[m] = 7; renderCell(m);
-    S.grid[t] = EMPTY; renderCell(t);
-    S.cur = taken; renderHand('roll');
+  async function abilityTap(idx) {
+    const a = abil;
+    if (idx === a.src && a.kind !== 'urban') { unpick(); return; }
+    if (a.kind === 'urban') {
+      if (!a.targets.has(idx)) { nudge(idx); return; }
+      if (a.a === null) { a.a = idx; cells[idx].classList.add('abil-a'); toast('Ora tocca il secondo pezzo'); return; }
+      if (a.a === idx) { a.a = null; cells[idx].classList.remove('abil-a'); return; }
+      const src = a.src, first = a.a; unpick();
+      await swapTiles(first, idx, { kind: 'urban', src }); return;
+    }
+    if (!a.targets.has(idx)) { nudge(idx); toast('Non si può scegliere questo pezzo'); return; }
+    const src = a.src; unpick();
+    if (a.kind === 'castle') await swapTiles(src, idx, { kind: 'castle', src });
+    else if (a.kind === 'planet') await gravityFuse(src, idx);
+    else if (a.kind === 'star') await starFuse(src, idx);
+    else if (a.kind === 'galaxy') await constellation(src, idx);
+  }
+  /* Un pezzo scivola da una casella all'altra (senza rimpicciolire) */
+  function slide(from, to) {
+    const pc = cells[from].querySelector('.pc:not(.ghost)'); if (!pc) return Promise.resolve();
+    const wr = wrap.getBoundingClientRect(), r = pc.getBoundingClientRect(), t = center(to), cl = pc.cloneNode(true);
+    cl.className = 'pc slide'; Object.assign(cl.style, { left: (r.left - wr.left) + 'px', top: (r.top - wr.top) + 'px', width: r.width + 'px', height: r.height + 'px', animation: 'none' });
+    fx.appendChild(cl); pc.style.visibility = 'hidden';
+    void fx.offsetWidth; cl.style.transform = `translate(${t.x - (r.left + r.width / 2)}px, ${t.y - (r.top + r.height / 2)}px)`;
+    return sleep(310).then(() => cl.remove());
+  }
+  /* Scambio di posto tra due pezzi (Arrocco, Urbanistica): contenuti e cariche viaggiano con i pezzi; poi le fusioni. */
+  async function swapTiles(a, b, o) {
+    if (busy || a === b || S.grid[a] < 0 || S.grid[b] < 0) return false;
+    const before = S.grid.slice();
+    saveUndo(); busy = true; clearPreview(); unpick();
     sfx('swap'); buzz(10);
-    const rainbow = hand === JOLLY, L = rainbow ? jollyLevel(S.grid, t) : hand;
-    toast(`${meta(7).e} Baratto: ${meta(taken).e} ${nameOf(taken)} in mano, ${meta(hand).e} sul tabellone`);
-    await dropPiece(t, L, { rainbow, keepNext: true, noUndo: true, kind: 'barter', from: m });
+    await Promise.all([slide(a, b), slide(b, a)]);
+    [S.grid[a], S.grid[b]] = [S.grid[b], S.grid[a]];
+    [S.held[a], S.held[b]] = [S.held[b], S.held[a]]; if (!S.held[a]) delete S.held[a]; if (!S.held[b]) delete S.held[b];
+    const sa = S.spent[a], sb = S.spent[b]; delete S.spent[a]; delete S.spent[b]; if (sb !== undefined) S.spent[a] = sb; if (sa !== undefined) S.spent[b] = sa;
+    /* la carica dell'abilità usata: il Castello che ha fatto l'arrocco è ora in b; la Metropoli è dove sta adesso */
+    const srcNow = (o.src === a) ? b : (o.src === b) ? a : o.src;
+    S.spent[srcNow] = S.grid[srcNow];
+    renderCell(a, 'pop'); renderCell(b, 'pop'); lastIdx = b;
+    const freed = new Set();
+    let merged = await resolveAt(a, freed); if (!S.done) merged = (await resolveAt(b, freed)) || merged;
+    lastFreed = [...freed];
+    S.moves++;
+    logMove({ k: o.kind, i: b, f: a, v: S.grid[b], b: before, a: S.grid.slice() });
+    if (merged) prev = null;
+    reconcileHeld(); busy = false; afterMove(false); return true;
   }
-  /* Segnale di fumo: la Capanna chiama un altro pezzo, una volta sola. */
-  function smokeSignal(idx) {
-    if (busy || S.grid[idx] !== 3) return;
-    if (S.spent[idx] === 3) { nudge(idx); toast('Fuoco spento: questa Capanna ha già fatto il segnale'); return; }
-    if (S.cur === JOLLY) { nudge(idx); toast('Hai già un Arcobaleno in mano'); return; }
-    saveUndo();
-    let n = S.cur, tries = 0;
-    while (n === S.cur && tries++ < 20) n = draw(S);
-    S.cur = n; S.spent[idx] = 3;
-    const c = center(idx); sparkle(c.x, c.y - 10, '#cfd6e6', 10, 1);
-    const r = $('nextTile').getBoundingClientRect(); sparkle(r.left + r.width / 2, r.top + r.height / 2, '#ffd25a', 8, r.width / 56);
-    sfx('dice'); buzz(12);
-    renderCell(idx); renderHand('roll'); $('undoBtn').disabled = !prev; save();
-    toast(`${meta(3).e} Segnale di fumo: arriva ${meta(S.cur).e} ${nameOf(S.cur)}`);
+  /* Una fusione speciale: i pezzi di `cellsIn` (stesso gradino L) si riuniscono in `t`; `make` nuovi e `left` vecchi secondo la tabella. */
+  async function fuseAt(cellsIn, t, L, make, left, label) {
+    const p = me(), n = cellsIn.length;
+    const sorted = cellsIn.slice().sort((x, y) => (x === t ? -1 : y === t ? 1 : dcell(x, t) - dcell(y, t)));
+    const targets = sorted.slice(0, make), stay = sorted.slice(make, make + left), gone = sorted.slice(make + left);
+    const lvl = L + 1, freed = new Set();
+    cellsIn.forEach(j => { const pc = cells[j].querySelector('.pc'); if (pc) { pc.classList.remove('drop', 'pop'); void pc.offsetWidth; pc.classList.add('jelly'); } });
+    if (label) comboBanner(label);
+    await sleep(200);
+    await flyTo(cellsIn.filter(j => j !== t), t);
+    cellsIn.forEach(j => { S.grid[j] = EMPTY; freed.add(j); });
+    targets.forEach(j => { S.grid[j] = lvl; freed.delete(j); });
+    stay.forEach(j => { S.grid[j] = L; freed.delete(j); });
+    pourHeld(cellsIn, targets, lvl, stay, L);
+    gone.forEach(j => renderCell(j));
+    targets.forEach(j => { renderCell(j, 'pop'); burst(j, lvl, 1); });
+    stay.forEach(j => renderCell(j, 'drop'));
+    const gain = Math.round(value(lvl) * make), coinGain = lvl * make;
+    S.score += gain; renderScore(); floatScore(t, gain, 1); sfx('merge', lvl);
+    p.coins += coinGain; flyCoins(t, coinGain);
+    track('merge', 1); track('reach', lvl); track('score', gain); track('coins', coinGain);
+    if (make > 1) track('double', 1);
+    createdNow.push(lvl); lastIdx = t;
+    const isNew = lvl > S.maxL, extras = onReach(lvl);
+    if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
+    if (lvl >= TOP && !S.done) extras.push(...finishClimb());
+    if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
+    await sleep(260);
+    for (const j of targets) { if (S.done) break; if (S.grid[j] === lvl) await resolveAt(j, freed); }
+    lastFreed = [...freed];
+  }
+  /* Gravità del Pianeta: il gruppo del pezzo toccato (nelle 8 caselle intorno al Pianeta) si fonde lì. */
+  async function gravityFuse(src, t) {
+    const grp = ringGroups(src).find(g => g.includes(t)); if (!grp || busy) return false;
+    const before = S.grid.slice(), L = S.grid[t], n = grp.length, make = makeOf(n), left = n - usedOf(make);
+    saveUndo(); busy = true; clearPreview(); S.spent[src] = 8; renderCell(src); sfx('magic');
+    await fuseAt(grp, t, L, make, left, `${meta(8).e} Gravità!`);
+    S.moves++; logMove({ k: 'gravity', i: t, f: src, v: L, b: before, a: S.grid.slice() }); prev = null;
+    reconcileHeld(); busy = false; afterMove(false); return true;
+  }
+  /* Fusione stellare: due pezzi uguali (più bassi della Stella) nelle 8 caselle intorno si fondono in uno, nella casella toccata. */
+  async function starFuse(src, t) {
+    const pair = ringPairs(src).find(g => g.includes(t)); if (!pair || busy) return false;
+    const others = pair.filter(j => j !== t).sort((x, y) => dcell(x, t) - dcell(y, t)), u = others[0];
+    const before = S.grid.slice(), L = S.grid[t];
+    saveUndo(); busy = true; clearPreview(); S.spent[src] = 9; renderCell(src); sfx('magic');
+    await fuseAt([t, u], t, L, 1, 0, `${meta(9).e} Fusione stellare!`);
+    S.moves++; logMove({ k: 'starfuse', i: t, f: src, v: L, b: before, a: S.grid.slice() }); prev = null;
+    reconcileHeld(); busy = false; afterMove(false); return true;
+  }
+  /* Costellazione: tre Stelle, ovunque siano, si riuniscono in una Galassia nella Stella toccata. */
+  async function constellation(src, t) {
+    const stars = starsOnBoard(); if (busy || stars.length < 3 || !stars.includes(t)) return false;
+    const others = stars.filter(j => j !== t).sort((x, y) => dcell(x, t) - dcell(y, t)).slice(0, 2);
+    const before = S.grid.slice();
+    saveUndo(); busy = true; clearPreview(); S.spent[src] = 10; renderCell(src); sfx('magic'); shake(1);
+    await fuseAt([t, ...others], t, 9, 1, 0, `${meta(10).e} Costellazione!`);
+    S.moves++; logMove({ k: 'constellation', i: t, f: src, v: 9, b: before, a: S.grid.slice() }); prev = null;
+    reconcileHeld(); busy = false; afterMove(false); return true;
   }
   async function moveSprout(from, to) {
-    if (busy || S.grid[from] !== 0 || S.grid[to] !== EMPTY) return;
+    if (busy || S.grid[from] !== 0 || S.grid[to] !== EMPTY || S.spent[from] === 0) return;
     saveUndo(); busy = true; clearPreview();
     await flyTo([from], to);
-    S.grid[from] = EMPTY; renderCell(from);
+    S.grid[from] = EMPTY; renderCell(from); delete S.spent[from];
+    S.spent[to] = 0; /* trapiantato: non si sposta più */
     busy = false;
     await dropPiece(to, 0, { keepNext: true, noUndo: true, kind: 'move', from });
   }
   async function prune(idx) {
-    if (busy || S.grid[idx] !== 1) return;
+    const v = S.grid[idx];
+    if (busy || (v !== 1 && v !== 2)) return;
     saveUndo(); busy = true; clearPreview();
     const pc = cells[idx].querySelector('.pc'); if (pc) pc.classList.add('smash');
     sparkle(center(idx).x, center(idx).y, '#7fc46a', 10, 1); sfx('hammer'); buzz(12);
     await sleep(220);
     S.grid[idx] = EMPTY; renderCell(idx);
     busy = false;
-    await dropPiece(idx, 0, { keepNext: true, noUndo: true, kind: 'prune' });
+    await dropPiece(idx, v - 1, { keepNext: true, noUndo: true, kind: 'prune' });
   }
-  /* Tocco su Casa/Borgo: con più pezzi dentro cambia quale esce per primo; altrimenti ricorda il gesto. */
-  function hostCycle(idx) {
-    const list = S.held[idx] || [], cap = HOST[S.grid[idx]];
-    nudge(idx);
-    if (list.length > 1) { list.push(list.shift()); renderCell(idx); sfx('tap'); buzz(6); toast(`Esce per primo ${meta(list[0]).e}`); save(); return; }
-    toast(list.length ? `Trascina ${meta(list[0]).e} fuori: su una casella vuota o sul "Prossimo"` : `Trascina qui il prossimo pezzo o un pezzo del tabellone (${cap} post${cap === 1 ? 'o' : 'i'})`);
+  /* Depositi (Capanna 1, Casa 2, Borgo 3 posti): solo per il pezzo in arrivo.
+     Finestrella sul pezzo: i pezzi dentro (toccane uno: lo scambi con quello in mano) e il posto libero (+: metti dentro quello in mano). */
+  let hpopIdx = -1;
+  function closeHousePop() { const h = $('hpop'); if (h) { h.hidden = true; } hpopIdx = -1; }
+  function openHousePop(idx) {
+    const v = S.grid[idx], cap = HOST[v]; if (!cap) return;
+    if (hpopIdx === idx) { closeHousePop(); return; }
+    unpick();
+    const h = $('hpop'), list = S.held[idx] || [];
+    h.querySelectorAll('button').forEach(b => b.remove());
+    $('hpopLab').textContent = `${nameOf(v)} ${list.length}/${cap}`;
+    for (let k = 0; k < cap; k++) {
+      const b = el('button');
+      if (k < list.length) { b.textContent = meta(list[k]).e; b.title = `Scambia ${meta(list[k]).e} con ${meta(S.cur).e} in mano`; b.addEventListener('click', e => { e.stopPropagation(); hostSwap(idx, k); }); }
+      else { b.className = 'plus'; b.textContent = '+'; b.title = `Metti dentro ${meta(S.cur).e}`; b.addEventListener('click', e => { e.stopPropagation(); hostPut(idx); }); }
+      h.appendChild(b);
+    }
+    h.hidden = false; hpopIdx = idx;
+    const r = cells[idx].getBoundingClientRect(), w = h.offsetWidth, hh = h.offsetHeight;
+    let left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2));
+    let top = r.top - hh - 10; if (top < 6) top = r.bottom + 10;
+    h.style.left = left + 'px'; h.style.top = top + 'px';
+    cells[idx].classList.add('abil-src'); sfx('tap');
   }
-  /* Il prossimo pezzo entra in una Casa/Borgo (trascinato) */
+  document.addEventListener('pointerdown', e => { if (hpopIdx >= 0 && !e.target.closest('#hpop') && !e.target.closest('#cella-' + hpopIdx)) { closeHousePop(); cells.forEach(c => c.classList.remove('abil-src')); } }, true);
+  /* Il prossimo pezzo entra in un deposito con posto libero */
   function hostPut(idx) {
     const cap = HOST[S.grid[idx]]; if (!cap || busy) return false;
     const list = S.held[idx] || (S.held[idx] = []);
     if (list.length >= cap) { nudge(idx); toast('Non c\'è più posto'); return false; }
-    saveUndo(); list.push(S.cur); S.cur = nextPiece(S); sfx('swap'); buzz(8);
-    toast(`${meta(list[list.length - 1]).e} ospitato (${list.length}/${cap})`);
-    renderCell(idx); afterMove(); return true;
+    saveUndo(); unpick(); cells[idx].classList.remove('abil-src');
+    list.push(S.cur); S.cur = nextPiece(S); sfx('swap'); buzz(8);
+    toast(`${meta(list[list.length - 1]).e} messo da parte (${list.length}/${cap})`);
+    renderCell(idx); afterMove(true); return true;
   }
-  /* Il primo pezzo ospitato torna in mano (trascinato sul "Prossimo"); quello in mano si mette in fila. */
-  function hostRetrieve(idx) {
-    const list = S.held[idx]; if (!list || !list.length || busy) return false;
-    saveUndo(); S.queue.unshift(S.cur); S.cur = list.shift(); if (!list.length) delete S.held[idx];
-    sfx('swap'); buzz(8);
-    toast(`${meta(S.cur).e} ripreso: ${meta(S.queue[0]).e} viene subito dopo`);
-    renderCell(idx); afterMove(); return true;
+  /* Un pezzo dentro il deposito si scambia con quello in mano */
+  function hostSwap(idx, k) {
+    const list = S.held[idx]; if (!list || k >= list.length || busy) return false;
+    saveUndo(); unpick(); cells[idx].classList.remove('abil-src');
+    const out = list[k]; list[k] = S.cur; S.cur = out; sfx('swap'); buzz(8);
+    toast(`${meta(out).e} in mano, ${meta(list[k]).e} dentro`);
+    renderCell(idx); afterMove(true); return true;
   }
-  /* Il primo pezzo ospitato viene appoggiato su una casella vuota (trascinato): è una mossa, la mano non cambia. */
-  async function hostPlace(from, to) {
-    const list = S.held[from]; if (!list || !list.length || busy || S.grid[to] !== EMPTY) return false;
-    saveUndo();
-    const piece = list.shift(); if (!list.length) delete S.held[from];
-    renderCell(from);
-    const rainbow = piece === JOLLY, L = rainbow ? jollyLevel(S.grid, to) : piece;
-    await dropPiece(to, L, { rainbow, keepNext: true, noUndo: true, kind: 'house', from });
-    return true;
+  /* Quando gli edifici si fondono, i pezzi dentro passano nei posti del nuovo edificio (prima i nuovi, poi quelli rimasti), gli altri tornano in fila. */
+  function pourHeld(groupCells, newCells, newLevel, stayCells, oldLevel) {
+    const pool = [];
+    groupCells.forEach(j => { if (S.held[j] && S.held[j].length) pool.push(...S.held[j]); delete S.held[j]; });
+    if (!pool.length) return 0;
+    const fill = (cellsTo, cap) => { cellsTo.forEach(j => { if (!cap) return; const take = pool.splice(0, cap); if (take.length) S.held[j] = take; }); };
+    fill(newCells, HOST[newLevel] || 0); fill(stayCells || [], HOST[oldLevel] || 0);
+    if (pool.length) { S.queue.unshift(...pool); toast(pool.length === 1 ? `${meta(pool[0]).e} torna in fila` : `${pool.length} pezzi tornano in fila: ${pool.map(x => meta(x).e).join(' ')}`); }
+    return pool.length;
   }
   /* Se una Casa o un Borgo non c'è più (fuso, tolto, risucchiato), i pezzi dentro tornano in fila.
      Il fuoco spento di una Capanna si dimentica quando in quella casella non c'è più una Capanna. */
@@ -2402,76 +2531,9 @@ body.dev-on .dev { display: flex; }
   }
   const ring8 = c => { const r = Math.floor(c / N), col = c % N, out = []; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = col + dc; if (rr >= 0 && rr < N && cc >= 0 && cc < N) out.push(rr * N + cc); } return out; };
   const dcell = (a, b) => Math.hypot(Math.floor(a / N) - Math.floor(b / N), a % N - b % N);
-  /* Abilità che scattano quando un pezzo nasce. Restituisce i messaggi da mostrare. */
-  function abilityText(lvl) {
-    const out = [];
-    if (lvl === 6) { S.chestDue = (S.chestDue || 0) + 1; out.push(`${meta(6).e} Tesoro: un regalo!`); }
-    if (lvl === 9) {
-      if (handConsumed) { if (S.queue[0] !== JOLLY) S.queue.unshift(JOLLY); }
-      else if (S.cur !== JOLLY) { S.queue.unshift(S.cur); S.cur = JOLLY; }
-      out.push(`${meta(9).e} Arcobaleno: il prossimo pezzo è un jolly 🌈!`);
-    }
-    return out;
-  }
-  /* Gravità del Pianeta: nelle 8 caselle intorno, i pezzi uguali tra loro si fondono anche se non si toccano. */
-  async function gravity(c, freed) {
-    const p = me(), byL = {};
-    ring8(c).forEach(j => { const v = S.grid[j]; if (v >= 0) (byL[v] = byL[v] || []).push(j); });
-    const levels = Object.keys(byL).map(Number).filter(L => byL[L].length >= 3).sort((a, b) => a - b);
-    if (!levels.length) return;
-    comboBanner(`${meta(8).e} Gravità!`); sfx('magic');
-    for (const L of levels) {
-      const cellsL = byL[L], n = cellsL.length, make = makeOf(n), left = n - usedOf(make);
-      const sorted = cellsL.slice().sort((a, b) => dcell(a, c) - dcell(b, c));
-      const targets = sorted.slice(0, make), stay = sorted.slice(make, make + left);
-      cellsL.forEach(j => { const pc = cells[j].querySelector('.pc'); if (pc) { pc.classList.remove('drop', 'pop'); void pc.offsetWidth; pc.classList.add('jelly'); } });
-      await sleep(200);
-      await flyTo(cellsL.filter(j => j !== targets[0]), targets[0]);
-      cellsL.forEach(j => { S.grid[j] = EMPTY; renderCell(j); if (freed) freed.add(j); });
-      const lvl = L + 1;
-      targets.forEach(t => { S.grid[t] = lvl; renderCell(t, 'pop'); burst(t, lvl, 1); if (freed) freed.delete(t); });
-      stay.forEach(j => { S.grid[j] = L; renderCell(j, 'drop'); if (freed) freed.delete(j); });
-      const gain = Math.round(value(lvl) * make), coinGain = lvl * make;
-      S.score += gain; renderScore(); floatScore(targets[0], gain, 1); sfx('merge', lvl);
-      p.coins += coinGain; flyCoins(targets[0], coinGain);
-      track('merge', 1); track('reach', lvl); track('score', gain); track('coins', coinGain);
-      createdNow.push(lvl);
-      const isNew = lvl > S.maxL, extras = onReach(lvl);
-      if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
-      extras.push(...abilityText(lvl));
-      if (lvl >= TOP && !S.done) extras.push(...finishClimb());
-      if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
-      await sleep(280);
-      if (S.done) break;
-    }
-  }
-  /* Risucchio della Galassia: i pezzi nelle 8 caselle intorno spariscono. */
-  async function suction(c, freed) {
-    const around = ring8(c).filter(j => S.grid[j] >= 0);
-    if (!around.length) return;
-    comboBanner(`${meta(10).e} Risucchio!`); sfx('magic'); shake(1);
-    around.forEach(j => { const pc = cells[j].querySelector('.pc'); if (pc) { pc.classList.remove('drop', 'pop'); void pc.offsetWidth; pc.classList.add('jelly'); } });
-    await sleep(200);
-    await flyTo(around, c);
-    around.forEach(j => { S.grid[j] = EMPTY; renderCell(j); if (freed) freed.add(j); });
-    burst(c, 10, 2); buzz(30);
-    await sleep(200);
-  }
-  async function dropPiece(idx, L, o) {
-    o = o || {};
-    const p = me(), before = S.grid.slice();
-    if (!o.noUndo) saveUndo();
-    busy = true; clearPreview(); lastIdx = idx; lastFreed = []; handConsumed = !o.keepNext;
-    const freed = new Set();
-    const sim = simulate(S.grid, idx, L);
-    S.grid[idx] = L; renderCell(idx, 'drop'); createdNow.push(L);
-    if (o.rainbow) { rainbowSparks(idx); sfx('magic'); }
-    dust(idx, L); buzz(8); sfx('place');
-    if (L > S.maxL) {
-      S.maxL = L; setSky(); renderLadder(true);
-      const ex = onReach(L); if (ex.length) celebrate(L, ex);
-    }
-    if (sim.steps.length) await sleep(230);
+  /* Una fusione (con le sue catene) a partire dalla casella idx dove il pezzo è già appoggiato. */
+  async function runMerges(idx, sim, freed) {
+    const p = me();
     for (let k = 0; k < sim.steps.length; k++) {
       const st = sim.steps[k], combo = k + 1;
       [...st.from, idx].forEach(j => {
@@ -2480,12 +2542,16 @@ body.dev-on .dev { display: flex; }
       });
       await sleep(240);
       await flyTo(st.from, idx);
-      st.from.forEach(j => { S.grid[j] = EMPTY; renderCell(j); freed.add(j); });
-      const lvl = st.L + 1;
-      S.grid[idx] = lvl; renderCell(idx, 'pop');
-      burst(idx, lvl, combo); floatScore(idx, st.gain, combo); sfx('merge', lvl);
-      st.keep.forEach(j => { S.grid[j] = lvl; renderCell(j, 'pop'); burst(j, lvl, 1); freed.delete(j); });
-      (st.stay || []).forEach(j => { S.grid[j] = st.L; renderCell(j, 'drop'); freed.delete(j); });
+      const lvl = st.L + 1, group = [idx, ...st.from];
+      st.from.forEach(j => { S.grid[j] = EMPTY; freed.add(j); });
+      S.grid[idx] = lvl;
+      st.keep.forEach(j => { S.grid[j] = lvl; freed.delete(j); });
+      (st.stay || []).forEach(j => { S.grid[j] = st.L; freed.delete(j); });
+      pourHeld(group, [idx, ...st.keep], lvl, st.stay || [], st.L);
+      st.from.forEach(j => renderCell(j));
+      renderCell(idx, 'pop'); burst(idx, lvl, combo); floatScore(idx, st.gain, combo); sfx('merge', lvl);
+      st.keep.forEach(j => { renderCell(j, 'pop'); burst(j, lvl, 1); });
+      (st.stay || []).forEach(j => renderCell(j, 'drop'));
       lastFreed = [...freed];
       const words = [];
       if (combo > 1) words.push(`Combo ×${combo}`);
@@ -2501,21 +2567,41 @@ body.dev-on .dev { display: flex; }
       createdNow.push(lvl);
       const isNew = lvl > S.maxL, extras = onReach(lvl);
       if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
-      extras.push(...abilityText(lvl));
       if (lvl >= TOP && !S.done) extras.push(...finishClimb());
       if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
       if (S.done) break;
-      if (lvl === 8) await gravity(idx, freed);
-      if (lvl === 10) await suction(idx, freed);
-      lastFreed = [...freed];
-      if (S.done) break;
       await sleep(combo < sim.steps.length ? 330 : 260);
     }
+  }
+  /* Fusioni a catena da una casella in cui un pezzo è appena arrivato (scambi, gravità, stelle, costellazione). */
+  async function resolveAt(idx, freed) {
+    const L = S.grid[idx]; if (L === undefined || L < 0 || S.done) return false;
+    const g = S.grid.slice(); g[idx] = EMPTY;
+    const sim = simulate(g, idx, L);
+    if (!sim.steps.length) return false;
+    await sleep(200);
+    await runMerges(idx, sim, freed || new Set());
+    return true;
+  }
+  async function dropPiece(idx, L, o) {
+    o = o || {};
+    const p = me(), before = S.grid.slice();
+    if (!o.noUndo) saveUndo();
+    busy = true; clearPreview(); lastIdx = idx; lastFreed = [];
+    const freed = new Set();
+    const sim = simulate(S.grid, idx, L);
+    S.grid[idx] = L; renderCell(idx, 'drop'); createdNow.push(L);
+    if (o.rainbow) { rainbowSparks(idx); sfx('magic'); }
+    dust(idx, L); buzz(8); sfx('place');
+    if (L > S.maxL) {
+      S.maxL = L; setSky(); renderLadder(true);
+      const ex = onReach(L); if (ex.length) celebrate(L, ex);
+    }
+    if (sim.steps.length) { await sleep(230); await runMerges(idx, sim, freed); }
     S.moves++;
     logMove({ k: o.kind || (o.rainbow ? 'rainbow' : 'piece'), i: idx, v: L, f: o.from, b: before, a: S.grid.slice() });
     if (sim.steps.length) prev = null; /* dopo una fusione non si torna indietro */
     if (!o.keepNext) S.cur = nextPiece(S);
-    handConsumed = false;
     reconcileHeld();
     busy = false; afterMove(!o.keepNext);
   }
@@ -2546,22 +2632,19 @@ body.dev-on .dev { display: flex; }
     const p = me(), full = S.grid.every(v => v !== EMPTY) && !S.grid.includes(CHEST), was = S.over;
     const canHammer = p && unlocked(p, 'hammer') && (p.inv.hammer > 0 || p.coins >= priceOf('hammer'));
     const canMagnet = p && unlocked(p, 'magnet') && magnetPlan(S.grid).steps.length > 0 && (p.inv.magnet > 0 || p.coins >= priceOf('magnet'));
-    /* abilità dei pezzi che liberano spazio o fondono anche a tabellone pieno */
-    const canHost = S.grid.some((v, i) => HOST[v] && (S.held[i] || []).length < HOST[v]);
-    const mets = S.grid.map((v, i) => (v === 7 && S.spent[i] !== 7) ? i : -1).filter(i => i >= 0);
-    const canBarter = mets.length > 0 && S.cur !== undefined && S.cur !== null && S.grid.some((v, t) => {
-      if (v < 0 || v === S.cur || !mets.some(m => m !== t)) return false;
-      const g = S.grid.slice(); g[t] = EMPTY;
-      const L = S.cur === JOLLY ? jollyLevel(g, t) : S.cur;
-      return simulate(g, t, L).steps.length > 0;
-    });
-    S.over = full && !canHammer && !canMagnet && !canHost && !canBarter;
+    /* abilità dei pezzi che possono ancora fondere o liberare caselle a tabellone pieno */
+    const swapMerges = (a, b) => { const g = S.grid.slice(); [g[a], g[b]] = [g[b], g[a]]; return bfsGroup(g, a, g[a]).length >= 3 || bfsGroup(g, b, g[b]).length >= 3; };
+    let canAbil = false;
+    if (full) for (let i = 0; i < SIZE && !canAbil; i++) {
+      const v = S.grid[i]; if (ONESHOT[v] === undefined || v === 0 || S.spent[i] === v) continue;
+      const t = abilityTargets(i); if (!Array.isArray(t)) continue;
+      if (v === 8 || v === 9 || v === 10) { canAbil = true; break; }
+      if (v === 6) canAbil = t.some(j => S.grid[j] !== 6 && swapMerges(i, j));
+      if (v === 7) { for (let x = 0; x < SIZE && !canAbil; x++) for (let y = x + 1; y < SIZE && !canAbil; y++) if (S.grid[x] >= 0 && S.grid[y] >= 0 && S.grid[x] !== S.grid[y] && swapMerges(x, y)) canAbil = true; }
+    }
+    S.over = full && !canHammer && !canMagnet && !canAbil;
     if (S.over && !was) { pushOnline(true); shake(2); buzz([60, 40, 60]); sfx('over'); }
     return full;
-  }
-  /* Vedetta dell'Albero: con un Albero sul tabellone si vede anche il pezzo dopo il prossimo. */
-  function ensureLookahead() {
-    if (S && S.grid.includes(2) && !S.queue.length && S.cur !== undefined) S.queue.push(draw(S));
   }
   function checkUnlocks() {
     const p = me(); if (!p || !S) return;
@@ -2571,10 +2654,13 @@ body.dev-on .dev { display: flex; }
       coach.power(k);
     });
   }
+  /* Il bollino della Galassia conta le Stelle sul tabellone: va aggiornato quando il tabellone cambia */
+  function refreshGalaxies() { if (S) S.grid.forEach((v, i) => { if (v === 10) renderCell(i); }); }
   function afterMove(newNext) {
     setTimeout(healBoard, 1200);
     if (S && S.fresh) delete S.fresh;
-    ensureLookahead(); checkUnlocks();
+    refreshGalaxies();
+    checkUnlocks();
     const made = createdNow.slice(); createdNow = [];
     if (made.length) coach.pieces(made);
     const pl = me();
@@ -2598,7 +2684,7 @@ body.dev-on .dev { display: flex; }
   }
   function nudgeSlot(i) { const b = $('slot' + i); b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); setTimeout(() => b.classList.remove('nope'), 350); sfx('nope'); }
   function tapSlot(i) {
-    if (busy || !S || S.over || S.done) return;
+    if (busy || !S || S.over || S.done || celebrating()) return;
     const p = me();
     if (!p) { openSetup(); return; }
     noteActivity(); unpick();
@@ -2691,10 +2777,14 @@ body.dev-on .dev { display: flex; }
         groups.get(best).push(j);
       });
       await Promise.all([...groups].map(([t, fr]) => flyTo(fr, t)));
-      st.cells.forEach(j => { S.grid[j] = EMPTY; renderCell(j); freed.add(j); });
+      st.cells.forEach(j => { S.grid[j] = EMPTY; freed.add(j); });
       const lvl = st.L + 1; lastIdx = st.targets[0];
-      st.targets.forEach(t => { S.grid[t] = lvl; renderCell(t, 'pop'); burst(t, lvl, 1); freed.delete(t); });
-      (st.stay || []).forEach(j => { S.grid[j] = st.L; renderCell(j, 'drop'); freed.delete(j); });
+      st.targets.forEach(t => { S.grid[t] = lvl; freed.delete(t); });
+      (st.stay || []).forEach(j => { S.grid[j] = st.L; freed.delete(j); });
+      pourHeld(st.cells, st.targets, lvl, st.stay || [], st.L);
+      st.cells.forEach(j => renderCell(j));
+      st.targets.forEach(t => { renderCell(t, 'pop'); burst(t, lvl, 1); });
+      (st.stay || []).forEach(j => renderCell(j, 'drop'));
       lastFreed = [...freed];
       floatScore(st.targets[0], st.gain, k);
       sfx('merge', lvl); buzz(18);
@@ -2706,12 +2796,8 @@ body.dev-on .dev { display: flex; }
       createdNow.push(lvl);
       const isNew = lvl > S.maxL, extras = onReach(lvl);
       if (isNew) { S.maxL = lvl; setSky(); renderLadder(true); }
-      extras.push(...abilityText(lvl));
       if (lvl >= TOP && !S.done) extras.push(...finishClimb());
       if (isNew || extras.length) celebrate(lvl, extras, null, S.done ? 'Cima della scala!' : null);
-      if (S.done) break;
-      for (const t of st.targets) { if (lvl === 8) await gravity(t, freed); if (lvl === 10) await suction(t, freed); }
-      lastFreed = [...freed];
       if (S.done) break;
       await sleep(320);
     }
@@ -3855,7 +3941,7 @@ body.dev-on .dev { display: flex; }
     if (!S || busy) return;
     if (v === EMPTY && S.grid[idx] === EMPTY) return;
     S.grid[idx] = v; renderCell(idx, v === EMPTY ? undefined : 'drop');
-    reconcileHeld(); updateOver(); lastIdx = idx;
+    reconcileHeld(); updateOver(); lastIdx = idx; refreshGalaxies();
     renderHand(''); renderLadder(); renderScore(); save(); showOver();
     if (v >= 0) coach.pieces([v]);
   }
