@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="app-version" content="20261107233810">
+<meta name="app-version" content="20261108071248">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -334,6 +334,10 @@ body.dragging .toast { display: none; }
 .bonus:active { transform: scale(.95); }
 .bonus.locked { opacity: .45; filter: grayscale(1); }
 .bonus.locked .b-n { background: transparent; color: var(--ink-soft); }
+/* I poteri bloccati dopo il prossimo da sbloccare: solo un posto tratteggiato, senza icona (il primo minuto resta pulito) */
+.bonus.later { opacity: .5; filter: none; background: transparent; border: 2px dashed var(--panel-line); }
+.bonus.later .b-em, .bonus.later .b-n { visibility: hidden; }
+.bonus.later .tip { display: none; }
 .bonus:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .bonus .b-em { font: 23px/1 var(--emoji); }
 .bonus .b-n { min-width: 1.5em; padding: 2px 6px; border-radius: 999px; background: var(--accent); color: #1c1206; font: 800 .76rem/1.1 var(--display); text-align: center; }
@@ -780,6 +784,7 @@ body.dev-on .dev { display: flex; }
 <div id="setup" class="sheet" hidden>
   <form id="setupForm" class="sheet-card" novalidate aria-labelledby="setupTitle">
     <h2 id="setupTitle">Chi gioca?</h2>
+    <p id="setupIntro" class="hint-text" hidden></p>
     <div id="loginWrap" class="login-wrap" hidden>
       <span class="hint-text">Hai già giocato su un altro telefono o hai reinstallato l'app?</span>
       <button id="loginBtn" type="button" class="btn google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6C12.3 13.4 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-3.9-13.6-9.7l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>Accedi con Google e ritrova i tuoi giocatori</button>
@@ -890,7 +895,7 @@ body.dev-on .dev { display: flex; }
         </ul>
       </li>
       <li><b>Scorta</b>: tocca una casella vuota della scorta per mettere da parte il prossimo pezzo. Tocca un pezzo in scorta per riprenderlo subito: quello che c'era si mette in fila e arriva dopo. La seconda e la terza casella si comprano con le monete e valgono solo per la scalata in corso.</li>
-      <li><b>Depositi</b> (🛖 1 posto, 🏡 2, 🏘️ 3): tengono da parte i pezzi in arrivo. Trascina il "Prossimo" sull'edificio per metterlo dentro, oppure tocca l'edificio: si apre la finestrella con i pezzi dentro e il posto libero (+). Toccando un pezzo dentro lo scambi con quello in mano; trascinandolo fuori (dall'edificio o dalla finestrella) lo appoggi su una casella vuota, oppure sul "Prossimo" per riprenderlo in mano: così il deposito si libera. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila (l'anteprima li fa lampeggiare).</li>
+      <li><b>Depositi</b> (🛖 1 posto, 🏡 2, 🏘️ 3): tengono da parte i pezzi in arrivo. Trascina il "Prossimo" sull'edificio per metterlo dentro, oppure tocca l'edificio: si apre la finestrella con i pezzi dentro e il posto libero (+). Toccando un pezzo dentro, finisce da solo nel "Prossimo" (quello che avevi in mano si mette in fila, nessuno scambio); trascinandolo fuori (dall'edificio o dalla finestrella) lo appoggi su una casella vuota del tabellone: in entrambi i casi il deposito si libera. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila (l'anteprima li fa lampeggiare).</li>
       <li><b>Abilità da usare</b>: Trapianto, Arrocco, Urbanistica, Gravità, Fusione stellare e Costellazione valgono una volta per pezzo: il bollino in alto a destra dice che è ancora disponibile. Tocca il pezzo, poi il bersaglio evidenziato. Il Germoglio si trascina anche su una casella vuota.</li>
       <li><b>Monete</b>: le guadagni con le fusioni. Servono per i <b>poteri</b>, per le scorte e per i pezzi mancanti dell'album.</li>
       <li><b>Regali</b>: a 500, 1.000, 2.000, 4.000… punti della scalata in corso (ogni volta il doppio) compare un regalo 🎁 sul tabellone, vicino all'ultima fusione. Toccalo per aprirlo e liberare la casella. Dentro ci sono monete, poteri o nuove icone: una nuova ogni 5 pezzi d'album circa, tutte con l'album completo.</li>
@@ -1003,7 +1008,7 @@ body.dev-on .dev { display: flex; }
     ['Trapianto', 'toccalo e poi una casella vuota (o trascinalo): si sposta lì. Una volta sola per Germoglio (↔️ = ancora trapiantabile). Conta come una mossa.'],
     ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
     ['Potatura', 'toccalo due volte: torna il pezzo di prima. Conta come una mossa.'],
-    ['Rifugio', 'tiene da parte 1 pezzo in arrivo: trascinaci sopra il "Prossimo" (o toccala e poi +). Toccando il pezzo dentro lo scambi con quello in mano; trascinandolo fuori lo appoggi su una casella vuota (o sul "Prossimo" per riprenderlo) e il Rifugio si libera.'],
+    ['Rifugio', 'tiene da parte 1 pezzo in arrivo: trascinaci sopra il "Prossimo" (o toccala e poi +). Toccando il pezzo dentro, finisce nel "Prossimo" (quello in mano si mette in fila); trascinandolo fuori lo appoggi su una casella vuota. In entrambi i casi il Rifugio si libera.'],
     ['Dispensa', 'come il Rifugio, con 2 posti. Quando gli edifici si fondono, i pezzi dentro passano nel nuovo edificio; quelli in più tornano in fila.'],
     ['Magazzino', 'come la Dispensa, con 3 posti.'],
     ['Arrocco', 'toccalo e poi un pezzo nella sua stessa riga o colonna: si scambiano di posto, anche se in mezzo ci sono altri pezzi. Una volta per Castello (♜); se nascono tris, si fondono.'],
@@ -1016,6 +1021,8 @@ body.dev-on .dev { display: flex; }
   const HOST = { 3: 1, 4: 2, 5: 3 }; /* depositi: Capanna 1, Casa 2, Borgo 3 posti */
 const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: '✦' }; /* abilità da usare una volta per pezzo: bollino finché è disponibile */ /* quanti pezzi ospitano Casa e Borgo */
   const UNLOCK_ORDER = ['dice', 'hammer', 'rainbow', 'magnet'], UNLOCK_AT = { dice: 125, hammer: 250, rainbow: 500, magnet: 1000 };
+  /* Il "primo minuto": i fumetti che arrivano quando servono (tap = prima mossa, merge = prima fusione, name = scelta del nome, poi scorta, album e missioni) */
+  const FM_STEPS = ['tap', 'merge', 'name', 'stash', 'album', 'miss'];
   const unlocked = (p, k) => !!(p && Array.isArray(p.unl) && p.unl.includes(k));
   const SKIES = [
     ['#e4f3dc', '#f7f0d6'], ['#d6efdc', '#f1f2cf'], ['#cbe8ef', '#eaf2d2'], ['#c0e0f3', '#f4eacd'],
@@ -1130,6 +1137,8 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     if (typeof p.tut.intro !== 'boolean') p.tut.intro = false;
     if (!Array.isArray(p.tut.pieces)) p.tut.pieces = [];
     if (!Array.isArray(p.tut.powers)) p.tut.powers = veteran ? UNLOCK_ORDER.slice() : [];
+    if (!Array.isArray(p.tut.fm)) p.tut.fm = (veteran || p.tut.intro) ? FM_STEPS.slice() : []; /* chi giocava già non rivede il primo minuto */
+    if (p.provisional !== true) delete p.provisional;
     if (!Array.isArray(p.icons)) p.icons = BASE_ICONS.slice();
     if (p.icon && !p.icons.includes(p.icon)) p.icons.push(p.icon);
     if (!p.disc) { p.disc = {}; if (p.bestL) p.disc.seme = Math.min(p.bestL, 11); }
@@ -1389,19 +1398,19 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     const p = me();
     $('coins').textContent = p ? fmt(p.coins) : '0';
     $('whoIcon').textContent = p ? p.icon : '❔';
-    $('whoLv').textContent = p ? 'Liv. ' + level(p) : '';
-    $('who').setAttribute('aria-label', p ? `Profilo di ${p.name}, livello ${level(p)}` : 'Scegli il giocatore');
+    $('whoLv').textContent = !p ? '' : p.provisional ? 'Nome?' : 'Liv. ' + level(p);
+    $('who').setAttribute('aria-label', !p ? 'Scegli il giocatore' : p.provisional ? 'Scegli il tuo nome' : `Profilo di ${p.name}, livello ${level(p)}`);
   }
   function bumpCoins() { const c = $('coinBox'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
   function renderBonus() {
-    const p = me();
+    const p = me(), nextK = p ? UNLOCK_ORDER.find(k => !unlocked(p, k)) : null;
     BONUS_KEYS.forEach(k => {
-      const b = $('bonus-' + k), n = p ? p.inv[k] : 0, c = b.querySelector('.b-n'), lock = !!p && !unlocked(p, k);
-      b.classList.toggle('locked', lock);
+      const b = $('bonus-' + k), n = p ? p.inv[k] : 0, c = b.querySelector('.b-n'), lock = !!p && !unlocked(p, k), later = lock && k !== nextK;
+      b.classList.toggle('locked', lock); b.classList.toggle('later', later);
       c.textContent = lock ? '🔒' : n > 0 ? String(n) : '+'; c.classList.toggle('zero', !lock && !n);
       b.classList.toggle('armed', armed === k);
       b.setAttribute('aria-pressed', String(armed === k));
-      b.setAttribute('aria-label', lock ? `${BONUS[k].n}: si sblocca a ${UNLOCK_AT[k]} punti` : `${BONUS[k].n}: ne hai ${n}. ${n ? 'Tocca per usarlo' : 'Tocca per comprarlo'}`);
+      b.setAttribute('aria-label', later ? `${BONUS[k].n}: arriva dopo ${BONUS[nextK].n} (a ${UNLOCK_AT[k]} punti)` : lock ? `${BONUS[k].n}: si sblocca a ${UNLOCK_AT[k]} punti` : `${BONUS[k].n}: ne hai ${n}. ${n ? 'Tocca per usarlo' : 'Tocca per comprarlo'}`);
     });
     boardEl.classList.toggle('armed-hammer', armed === 'hammer');
   }
@@ -1923,10 +1932,11 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     if (rung > (p.disc[tid] || 0)) p.disc[tid] = rung;
     const after = level(p);
     if (after > before) { const b = after * 20; p.coins += b; out.push(`⭐ Livello ${after}! +${b} 🪙`); }
-    if (lvl <= PUZZLE_N) out.push(...addPiece(p, tid, lvl - 1));
+    if (lvl <= PUZZLE_N) { const got = addPiece(p, tid, lvl - 1); if (got.length) albumNow = true; out.push(...got); }
     if (out.length) { savePlayers(); prev = null; }
     return out;
   }
+  let albumNow = false; /* in questa mossa è arrivato un pezzo d'album (per il fumetto del primo minuto) */
   let chestQueue = 0, chestOpen = false, chestLabel = null;
   /* Quando i punti della scalata superano una soglia, un forziere compare sul tabellone vicino all'ultima fusione
      (al massimo uno per mossa). Si apre toccandolo, e la casella si libera. Se non c'è posto, arriva appena si libera una casella. */
@@ -2324,15 +2334,12 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       const room = HOST[v] && (S.held[i] || []).length < HOST[v];
       if (drag.kind === 'next') return (v === EMPTY || room) ? cell : null;
       if (i === drag.from) return null;
-      return v === EMPTY ? cell : null; /* germoglio: trapianto; pezzo che esce da un deposito: appoggio */
+      return v === EMPTY ? cell : null; /* germoglio: trapianto; pezzo che esce da un deposito: appoggio (solo sul tabellone) */
     }
-    const slot = elm.closest('.slot');
-    if (slot && drag.kind === 'house') return $('nextTile'); /* pezzo che esce da un deposito: torna in mano */
     return null;
   }
   async function dropOnto(d, t) {
     if (!S || busy) return;
-    if (t === $('nextTile')) { if (d.kind === 'house') hostRetrieve(d.from, d.k); return; }
     const i = cells.indexOf(t); if (i < 0) return;
     noteActivity();
     if (d.kind === 'next') {
@@ -2353,13 +2360,13 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     await dropPiece(to, L, { rainbow, keepNext: true, noUndo: true, kind: 'house', from });
     return true;
   }
-  /* Un pezzo esce dal deposito trascinato sul "Prossimo": torna in mano, quello che avevi si mette in fila. */
+  /* Tocco su un pezzo dentro il deposito: finisce da solo nel "Prossimo" (quello che avevi in mano si mette in fila, nessuno scambio). */
   function hostRetrieve(from, k) {
     const list = S.held[from]; if (!list || k >= list.length || busy) return false;
     saveUndo(); closeHousePop(); cells[from].classList.remove('abil-src');
     S.queue.unshift(S.cur); S.cur = list.splice(k, 1)[0]; if (!list.length) delete S.held[from];
     sfx('swap'); buzz(8);
-    toast(`${meta(S.cur).e} in mano: ${meta(S.queue[0]).e} viene subito dopo`);
+    toast(`${meta(S.cur).e} nel Prossimo: ${meta(S.queue[0]).e} viene subito dopo`);
     renderCell(from); afterMove(true); return true;
   }
   $('nextTile').addEventListener('pointerdown', e => {
@@ -2370,6 +2377,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
   /* Abilità toccando un pezzo: Germoglio si sposta (una volta), Cespuglio e Albero si potano, i depositi si aprono, gli altri si armano. */
   function tapPiece(idx) {
     const v = S.grid[idx];
+    if (v >= 0) coach.pieces([v]); /* se l'abilità non è ancora stata spiegata, il fumetto arriva adesso */
     if (picked === idx) { unpick(); return; }
     if (pruneArm !== null && pruneArm !== idx) unpick();
     if (picked !== null) unpick();
@@ -2542,7 +2550,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     await dropPiece(idx, v - 1, { keepNext: true, noUndo: true, kind: 'prune' });
   }
   /* Depositi (Capanna 1, Casa 2, Borgo 3 posti): solo per il pezzo in arrivo.
-     Finestrella sul pezzo: i pezzi dentro (toccane uno: lo scambi con quello in mano) e il posto libero (+: metti dentro quello in mano). */
+     Finestrella sul pezzo: i pezzi dentro (toccane uno: finisce nel "Prossimo"; trascinalo: lo appoggi sul tabellone) e il posto libero (+: metti dentro quello in mano). */
   let hpopIdx = -1;
   function closeHousePop() { const h = $('hpop'); if (h) { h.hidden = true; } hpopIdx = -1; }
   function openHousePop(idx) {
@@ -2555,8 +2563,8 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     for (let k = 0; k < cap; k++) {
       const b = el('button');
       if (k < list.length) {
-        b.textContent = meta(list[k]).e; b.title = `Tocca: scambia con ${meta(S.cur).e} in mano · Trascina: portalo fuori`; b.className = 'can-drag';
-        b.addEventListener('click', e => { e.stopPropagation(); if (Date.now() - dragEndAt < 600) return; hostSwap(idx, k); });
+        b.textContent = meta(list[k]).e; b.title = 'Tocca: va nel "Prossimo" · Trascina: appoggialo su una casella vuota'; b.className = 'can-drag';
+        b.addEventListener('click', e => { e.stopPropagation(); if (Date.now() - dragEndAt < 600) return; hostRetrieve(idx, k); });
         b.addEventListener('pointerdown', e => dragArm(e, b, () => (busy || !S.held[idx] || k >= S.held[idx].length) ? null : { kind: 'house', from: idx, k, piece: S.held[idx][k] }));
       }
       else { b.className = 'plus'; b.textContent = '+'; b.title = `Metti dentro ${meta(S.cur).e}`; b.addEventListener('click', e => { e.stopPropagation(); hostPut(idx); }); }
@@ -2578,14 +2586,6 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     saveUndo(); unpick(); cells[idx].classList.remove('abil-src');
     list.push(S.cur); S.cur = nextPiece(S); sfx('swap'); buzz(8);
     toast(`${meta(list[list.length - 1]).e} messo da parte (${list.length}/${cap})`);
-    renderCell(idx); afterMove(true); return true;
-  }
-  /* Un pezzo dentro il deposito si scambia con quello in mano */
-  function hostSwap(idx, k) {
-    const list = S.held[idx]; if (!list || k >= list.length || busy) return false;
-    saveUndo(); unpick(); cells[idx].classList.remove('abil-src');
-    const out = list[k]; list[k] = S.cur; S.cur = out; sfx('swap'); buzz(8);
-    toast(`${meta(out).e} in mano, ${meta(list[k]).e} dentro`);
     renderCell(idx); afterMove(true); return true;
   }
   /* Quando gli edifici si fondono, i pezzi dentro passano nei posti del nuovo edificio (prima i nuovi, poi quelli rimasti), gli altri tornano in fila. */
@@ -2748,6 +2748,8 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     checkUnlocks();
     const made = createdNow.slice(); createdNow = [];
     if (made.length) coach.pieces(made);
+    const gotAlbum = albumNow; albumNow = false;
+    coach.after(made, gotAlbum);
     const pl = me();
     if (pl) {
       if (S.score > recOf(pl, S.theme)) pl.rec[S.theme] = S.score;
@@ -3298,7 +3300,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     }
     const pm = me(), si = pm && syncInfo[pm.id];
     const meOnline = !!(pm && online.some(e => e.id === pm.id && e.best >= pm.best && e.lvl >= level(pm)));
-    const myLine = !pm || pm.best <= 0 ? '' : meOnline ? ' Il tuo punteggio è online ✓'
+    const myLine = !pm || pm.best <= 0 ? '' : pm.provisional ? ' Scegli un nome (tocca la tua icona in alto) per entrare nella classifica online.' : meOnline ? ' Il tuo punteggio è online ✓'
       : si && !si.ok ? ` Il tuo punteggio non è ancora online: ${si.msg}.` : ' Invio del tuo punteggio…';
     $('ranksNote').textContent = 'In ordine di livello. ' + (!FIREBASE_URLS.length ? 'Punteggi di questo dispositivo.'
       : onlineOk ? `Online: ${online.length} ${online.length === 1 ? 'giocatore' : 'giocatori'} in classifica.` + myLine
@@ -3349,7 +3351,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     box.replaceChildren();
     others.forEach(p => {
       const b = el('button', 'known-chip'); b.type = 'button';
-      b.append(el('span', 'kc-i', p.icon), el('span', 'kc-n', p.name));
+      b.append(el('span', 'kc-i', p.icon), el('span', 'kc-n', p.provisional ? `${p.name} (senza nome)` : p.name));
       b.addEventListener('click', () => switchTo(p.id));
       box.appendChild(b);
     });
@@ -3359,23 +3361,56 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     ul.replaceChildren();
     ABIL.forEach((a, l) => { const li = el('li'); li.append(`${meta(l).e} `, el('b', '', `${nameOf(l)} — ${a[0]}`), `: ${a[1]}`); ul.appendChild(li); });
   }
-  function openSetup() {
+  /* La scheda del nome ha due usi: creare un giocatore ("Chi gioca?") oppure, con mode 'rename', dare il nome
+     al giocatore provvisorio del primo minuto ("Come ti chiami?", si può rimandare). */
+  let renaming = false;
+  function openSetup(mode) {
     if (busy) return;
-    $('setupCancel').hidden = !me();
-    $('pname').value = ''; pickIcon = null; $('setupErr').textContent = '';
-    iconGrid($('icons'), BASE_ICONS, null, ic => { pickIcon = ic; $('setupErr').textContent = ''; });
+    const p = me(), rename = mode === 'rename' && !!(p && p.provisional);
+    renaming = rename;
+    $('setupTitle').textContent = rename ? 'Come ti chiami?' : 'Chi gioca?';
+    $('setupIntro').hidden = !rename;
+    $('setupIntro').textContent = rename ? 'Bella fusione! Con un nome entri in classifica e puoi salvare i progressi con Google. Lo scegli una volta sola.' : '';
+    $('setupCancel').hidden = !p; $('setupCancel').textContent = rename ? 'Più tardi' : 'Annulla';
+    $('setupGo').textContent = rename ? 'Salva il nome' : 'Inizia a giocare';
+    $('pname').value = ''; pickIcon = rename ? p.icon : null; $('setupErr').textContent = '';
+    iconGrid($('icons'), BASE_ICONS, pickIcon, ic => { pickIcon = ic; $('setupErr').textContent = ''; });
     renderKnown(); renderAccount();
     openSheet('setup');
     if (window.matchMedia && matchMedia('(pointer: fine)').matches) setTimeout(() => $('pname').focus(), 60);
   }
-  function closeSetup() { closeSheet('setup'); }
+  function closeSetup() { closeSheet('setup'); renaming = false; }
+  /* Giocatore provvisorio del primo minuto: si gioca subito, il nome si sceglie dopo la prima fusione.
+     Non va online finché non ha un nome. La spiegazione lunga resta in Info → "Rivedi il tutorial". */
+  function newProvisional() {
+    const id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const icon = BASE_ICONS[Math.floor(Math.random() * BASE_ICONS.length)];
+    const p = normPlayer({ id, name: 'Giocatore', icon, best: 0, bestL: 0, theme: 'seme', claimed: false, icons: BASE_ICONS.slice(), provisional: true });
+    p.tut.intro = true;
+    P.list.push(p); P.current = id;
+    return p;
+  }
+  /* Un giocatore nuovo: nessuna fusione fatta e primo minuto ancora da iniziare. */
+  const newbie = p => !!(p && !(p.best > 0) && p.tut && Array.isArray(p.tut.fm) && !p.tut.fm.length);
+  /* Il primo tabellone: due Germogli vicini e il terzo in mano, poi Cespuglio, Germoglio (per la scorta) e Cespuglio. */
+  function firstBoard() {
+    const st = newState('seme', 0, true);
+    st.grid.fill(EMPTY); st.grid[14] = 0; st.grid[15] = 0;
+    st.maxL = 0; st.recent = []; st.cur = 0; st.queue = [1, 0, 1];
+    return st;
+  }
+  /* Toglie un giocatore (e i suoi tabelloni) da questo dispositivo. */
+  function dropPlayer(id) {
+    P.list = P.list.filter(x => x.id !== id);
+    THEMES.forEach(t => { try { localStorage.removeItem(boardKey(id, t.id)); } catch (e) {} });
+  }
   function switchTo(id) {
     if (busy) return;
     if (me()) save();
     P.current = id; savePlayers();
     const p = me();
     const loaded = p ? loadBoard(id, myTheme(p)) : null;
-    S = loaded ? normState(loaded, p) : newState(p ? myTheme(p) : undefined, 0, true);
+    S = loaded ? normState(loaded, p) : newbie(p) ? firstBoard() : newState(p ? myTheme(p) : undefined, 0, true);
     prev = null; armed = null; lastScore = S.score;
     clearPreview(); closeSetup(); resetNewBtn();
     renderAll('drop');
@@ -3392,20 +3427,31 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     if (!name) { err('Scrivi un nome per entrare in classifica.'); $('pname').focus(); return; }
     if (!NAME_OK.test(name)) { err("Usa al massimo 16 caratteri tra lettere, numeri, spazi e - _ '"); $('pname').focus(); return; }
     if (!pickIcon) { err('Scegli una delle icone.'); return; }
-    const key = nameKey(name), mine = me();
-    if (mine && nameKey(mine.name) === key) { err(`Stai già giocando come ${mine.name}.`); return; }
-    if (P.list.some(x => nameKey(x.name) === key)) { err('Questo nome è già su questo dispositivo: toccalo in «Continua come» oppure scegline un altro.'); return; }
-    const id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const key = nameKey(name), mine = me(), rename = renaming && !!(mine && mine.provisional);
+    if (!rename && mine && nameKey(mine.name) === key) { err(`Stai già giocando come ${mine.name}.`); return; }
+    if (P.list.some(x => (!rename || x.id !== mine.id) && nameKey(x.name) === key)) { err('Questo nome è già su questo dispositivo: toccalo in «Continua come» oppure scegline un altro.'); return; }
+    const id = rename ? mine.id : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     let claimed = false;
     if (FIREBASE_URLS.length) {
       const go = $('setupGo');
       claiming = true; go.disabled = true; go.textContent = 'Controllo il nome…';
       const res = await claimName(key, id);
-      claiming = false; go.disabled = false; go.textContent = 'Inizia a giocare';
+      claiming = false; go.disabled = false; go.textContent = rename ? 'Salva il nome' : 'Inizia a giocare';
       if (res === 'taken') { err('Questo nome è già usato da un altro giocatore. Scegline un altro.'); $('pname').focus(); return; }
       claimed = res === 'ok';
     }
-    P.list.push(normPlayer({ id, name, icon: pickIcon, best: 0, bestL: 0, theme: 'seme', claimed, icons: BASE_ICONS.slice() }));
+    if (rename) {
+      /* il giocatore provvisorio diventa quello vero: da ora va anche online */
+      mine.name = name; mine.icon = pickIcon; mine.claimed = claimed; delete mine.provisional; delete mine.nameTaken; delete mine.synced; delete mine.backed;
+      savePlayers(); closeSetup();
+      renderTop(); renderRanks(); pushOnline(true);
+      toast(`Ciao ${name}! Nome salvato`);
+      setTimeout(() => coach.tick(), 400);
+      return;
+    }
+    const np = normPlayer({ id, name, icon: pickIcon, best: 0, bestL: 0, theme: 'seme', claimed, icons: BASE_ICONS.slice() });
+    np.tut.intro = true; /* anche chi si aggiunge parte dal primo minuto; la spiegazione lunga resta in Info */
+    P.list.push(np);
     switchTo(id);
     setTimeout(showTipsOnce, 900);
   });
@@ -3564,7 +3610,12 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       savePlayers();
       restoring = false;
       if (!added && !changed) return;
-      if (!me() && firstId) switchTo(firstId);
+      const curP = me();
+      if (firstId && (!curP || curP.provisional)) {
+        /* chi si collega a Google vuole il suo giocatore: quello provvisorio sparisce se non ha ancora fatto niente */
+        if (curP && curP.provisional && !(curP.best > 0)) dropPlayer(curP.id);
+        switchTo(firstId);
+      }
       else if (changed) { reloadCurrentBoard(); renderAll(); renderRanks(); toast('Ripreso il salvataggio più recente dal cloud'); }
       else { renderRanks(); if (!$('setup').hidden) renderKnown(); }
       if (added) toast(added === 1 ? 'Giocatore ritrovato!' : `${added} giocatori ritrovati!`);
@@ -3674,7 +3725,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
      Una volta per sessione ricontrolla online proprietario, nome e punteggio: i segni salvati sul telefono
      ("già inviato", "nome già registrato") possono essere vecchi, per esempio se il database è stato svuotato. */
   async function pushPlayer(p) {
-    if (!p) return false;
+    if (!p || p.provisional) return false; /* senza nome niente classifica né salvataggio online */
     if (!authUser) { setSync(p, false, authErr ? `accesso non riuscito (${authErr})` : authFailed && !AUTH ? 'accesso non disponibile: serve internet' : 'accesso in corso…'); return false; }
     const uid = authUser.uid, vk = p.id + '|' + uid;
     if (!verified.has(vk)) {
@@ -3786,7 +3837,7 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
   BONUS_KEYS.forEach(k => $('bonus-' + k).addEventListener('click', () => tapBonus(k)));
   $('tipsBtn').addEventListener('click', () => { document.body.classList.contains('tips') ? hideTips() : showTips(); });
   $('coinBox').addEventListener('click', () => { if (me()) openShop(); else openSetup(); });
-  $('who').addEventListener('click', () => { if (!me()) { openSetup(); return; } renderProfile(); openSheet('profSheet'); });
+  $('who').addEventListener('click', () => { const p = me(); if (!p) { openSetup(); return; } if (p.provisional) { openSetup('rename'); return; } renderProfile(); openSheet('profSheet'); });
   $('undoBtn').addEventListener('click', undo);
   $('logBtn').addEventListener('click', copyLog);
   (() => {
@@ -3896,9 +3947,10 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
     applyMotion(); applySound();
     P = (data && data.P && Array.isArray(data.P.list)) ? data.P : loadPlayers();
     P.list.forEach(p => { normPlayer(p); ensureDaily(p); });
-    const p = me();
+    let p = me();
+    if (!p && !P.list.length) { p = newProvisional(); ensureDaily(p); } /* primo avvio: si gioca subito, il nome dopo la prima fusione */
     if (data && validGame(data.S) && p) { S = normState(data.S, p); prev = data.prev || null; }
-    else { const g = p && loadBoard(P.current, myTheme(p)); S = g ? normState(g, p) : newState(p ? myTheme(p) : undefined, 0, true); }
+    else { const g = p && loadBoard(P.current, myTheme(p)); S = g ? normState(g, p) : newbie(p) ? firstBoard() : newState(p ? myTheme(p) : undefined, 0, true); }
     savePlayers();
     lastScore = S.score;
     drawStars(); sizeParticles();
@@ -3996,9 +4048,51 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       ];
       steps.forEach((st, k) => { st.n = `${k + 1} di ${steps.length}`; if (k === steps.length - 1) st.done = tt => { if (tt) tt.intro = true; }; add(st); });
     }
+    /* Primo minuto: finché il nome non è stato chiesto, niente fumetti sulle abilità (arrivano dopo, o toccando il pezzo) */
+    const fmOn = () => { const t = tut(); return !!(t && Array.isArray(t.fm) && !t.fm.includes('name')); };
+    const fmHas = (t, k) => !!(t && Array.isArray(t.fm) && t.fm.includes(k));
+    const fmMark = (t, k) => { if (t && Array.isArray(t.fm) && !t.fm.includes(k)) t.fm.push(k); };
+    /* Il bersaglio del primo fumetto: le due caselle dei Germogli insieme */
+    function pairTarget() {
+      const a = cells[14].getBoundingClientRect(), b = cells[15].getBoundingClientRect();
+      const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top), right = Math.max(a.right, b.right), bottom = Math.max(a.bottom, b.bottom);
+      return { getBoundingClientRect: () => ({ left, top, right, bottom, width: right - left, height: bottom - top }) };
+    }
+    /* Prima mossa sul tabellone preparato: un solo fumetto, poi si gioca */
+    function first() {
+      const t = tut(); if (!t || fmHas(t, 'merge') || !S || S.moves > 0) return; /* finché la prima mossa non è fatta, il fumetto torna anche dopo una riapertura */
+      if (S.grid[14] !== 0 || S.grid[15] !== 0 || S.cur !== 0) return;
+      add({ id: 'f1', emoji: '🌱', title: 'Tre uguali si fondono', text: 'In alto c\'è il pezzo da appoggiare: un Germoglio. Tocca una casella vuota accanto a questi due Germogli (o trascinacelo): tre pezzi uguali che si toccano diventano un pezzo nuovo.', target: pairTarget, pad: 6, cta: 'Provo!', mark: tt => fmMark(tt, 'tap') });
+    }
+    /* Dopo la prima fusione: la scala, poi il nome */
+    function askName() {
+      const t = tut(); if (!t) return;
+      fmMark(t, 'name'); savePlayers();
+      const go = () => { if (busy || celebrating() || visible()) { setTimeout(go, 400); return; } const p = me(); if (p && p.provisional) openSetup('rename'); else tick(); };
+      setTimeout(go, 300);
+    }
+    /* Il pezzo in mano non si fonde da nessuna parte, mentre sul tabellone c'è già una coppia: è il momento della scorta */
+    function stashUseful() {
+      if (!S || S.cur === undefined || S.cur === null || S.cur < 0 || !slotOpen(0) || S.slots[0] !== null || S.moves < 2) return false;
+      const g = S.grid;
+      for (let i = 0; i < SIZE; i++) if (g[i] === EMPTY && simulate(g, i, S.cur).steps.length) return false;
+      return g.some((v, i) => v >= 0 && flood(g, i, v).length >= 2);
+    }
+    /* Dopo ogni mossa: i fumetti del primo minuto, solo quando risolvono un problema concreto */
+    function after(made, gotAlbum) {
+      const t = tut(); if (!t || !S) return;
+      if (!fmHas(t, 'merge')) {
+        if (made.length) add({ id: 'f2', emoji: '🪜', title: 'Prima fusione!', text: 'Ogni fusione sale di un gradino: la scala qui sotto segna dove sei e il prossimo traguardo. In cima, la scalata è completa.', target: () => document.querySelector('.ladder-bar'), cta: 'Avanti', mark: tt => fmMark(tt, 'merge'), done: askName });
+        return;
+      }
+      if (!fmHas(t, 'name')) { askName(); return; }
+      if (gotAlbum && !fmHas(t, 'album')) add({ id: 'f4', emoji: '🧩', title: 'Un pezzo dell\'album', text: 'Ogni gradino nuovo di un tema regala un pezzo del suo puzzle: li trovi nell\'Album. Puzzle completo = tema nuovo da scoprire.', target: () => $('albumBtn'), pad: 4, mark: tt => fmMark(tt, 'album') });
+      if (S.moves >= 6 && !fmHas(t, 'miss')) add({ id: 'f5', emoji: '🎯', title: 'Le missioni', text: 'Ogni giorno 3 obiettivi con premi in monete: qui vedi cosa chiedono e a che punto sei.', target: () => $('missBtn'), pad: 4, mark: tt => fmMark(tt, 'miss') });
+      if (!fmHas(t, 'stash') && stashUseful()) add({ id: 'f3', emoji: '🎒', title: 'La scorta', text: `${meta(S.cur).e} adesso non ti serve? Tocca la scorta: il pezzo si mette da parte e lo riprendi quando vuoi toccandola di nuovo (puoi anche trascinarlo).`, target: () => $('slot0'), pad: 6, mark: tt => fmMark(tt, 'stash') });
+    }
     /* Un pezzo nuovo sul tabellone: la sua abilità, una volta sola */
     function pieces(levels) {
-      const t = tut(); if (!t) return;
+      const t = tut(); if (!t || fmOn()) return;
       [...new Set(levels)].filter(l => l >= 0 && l <= TOP && !t.pieces.includes(l)).sort((a, b) => a - b).forEach(l => {
         add({ id: 'p' + l, emoji: meta(l).e, title: `${nameOf(l)}: ${ABIL[l][0]}`, text: `${nameOf(l)} ha l'abilità ${ABIL[l][0]}: ${ABIL[l][1]}`, target: () => cellFor(l), pad: 4,
           mark: tt => { if (tt && !tt.pieces.includes(l)) tt.pieces.push(l); } });
@@ -4011,11 +4105,11 @@ const ONESHOT = { 0: '↔️', 6: '♜', 7: '🏗️', 8: '🌀', 9: '✨', 10: 
       add({ id: 'w' + k, emoji: b.e, title: `${b.n} sbloccato!`, text: `${b.tip} Ne hai 3: quando finiscono lo compri con le monete o lo trovi nei regali.`, target: () => $('bonus-' + k), pad: 6,
         mark: tt => { if (tt && !tt.powers.includes(k)) tt.powers.push(k); } });
     }
-    function start() { reset(); intro(); if (S) pieces(S.grid.filter(v => v >= 0)); }
+    function start() { reset(); intro(); if (S) { pieces(S.grid.filter(v => v >= 0)); first(); } }
     function restart() { const t = tut(); if (!t) return; t.intro = false; t.pieces = []; t.powers = []; savePlayers(); start(); }
     $('coach').addEventListener('click', e => { e.stopPropagation(); next(); });
     window.addEventListener('resize', () => { if (visible()) place(); });
-    return { add, intro, pieces, power, start, restart, reset, tick, visible, pending };
+    return { add, intro, pieces, power, first, after, start, restart, reset, tick, visible, pending };
   })();
   $('tutBtn').addEventListener('click', () => { closeSheet('infoSheet'); coach.restart(); });
 
